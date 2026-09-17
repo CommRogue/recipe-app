@@ -259,7 +259,7 @@ The action automatically exports environment variables:
 
 - `source: "."`: Deploys from source code; Cloud Build automatically builds using Go buildpack (detects `go.mod`)
 - `region`: Choose based on user geography (dev: `me-west1` or `us-central1`, prod: likely `me-west1` for Middle East users)
-- `allow_unauthenticated: false`: Cloud Run service requires authentication by default (good for backend)
+- `allow_unauthenticated`: **the skeleton's `false` is wrong for this app.** With Cloud Run IAM authentication on, requests must carry a Google-signed identity token with `run.invoker`, so phones sending Firebase ID tokens would get 403 before reaching the Go code. The recipe API has to be publicly invokable and verify the Firebase ID token itself (ADR 0002 and the backend scaffold ticket). Set public access once by hand, or use `true` here and keep `roles/run.admin`
 - `flags`: Pass additional `gcloud run deploy` flags (e.g., `--service-account`, `--min-instances`, `--max-instances`, `--cpu`, `--memory`)
 - The action automatically includes GitHub Actions metadata as labels
 
