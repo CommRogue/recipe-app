@@ -1,13 +1,13 @@
 # Gemini on Vertex AI from Go
 
-**Research Date:** 2026-09-16  
+**Research Date:** 2026-09-16 (audited and corrected 2026-09-17 against the model cards, pricing page, locations table and Standard PayGo page; see Audit notes at the end)  
 **Question:** How should a Go service on Cloud Run call Gemini on Vertex AI to produce a Recipe as structured JSON?
 
 ## Recommended Default Models
 
 **For Generation:** `gemini-3.8-flash` (GA, September 2, 2026)
-- Reasoning: Most capable Flash model (approaching Pro-level performance), 1M token context, structured output + streaming support, global + multi-region availability, 45-minute video limit, supports thinking_level LOW/MEDIUM/HIGH (default MEDIUM, no MINIMAL).
-- Pricing: $0.75/$3.75 per 1M input/output tokens through Dec 31 2026; $1.50/$7.50 starting Jan 1 2027 (introductory pricing).
+- Reasoning: Most capable Flash model (approaching Pro-level performance), 1M token context, structured output + streaming support, served only from the `global` endpoint and the `us` / `eu` multi-region endpoints (no single-region endpoints), 45-minute video limit, supports thinking_level LOW/MEDIUM/HIGH (default MEDIUM, no MINIMAL).
+- Pricing on the `global` endpoint: $0.75/$3.75 per 1M input/output tokens through Dec 31 2026; $1.50/$7.50 starting Jan 1 2027 (introductory pricing). Non-global endpoints (`us`, `eu`) cost 10% more ($0.825/$4.125 intro).
 
 **For Refinement:** `gemini-3.5-flash-lite` (GA, July 21, 2026)  
 - Reasoning: Cost-efficient ($0.30/$2.50 per 1M tokens, stable pricing), optimized for latency and high-volume tasks, thinking_level defaults to MINIMAL (fast, no reasoning for simple refinement requests), structured output support, 1M token context.
@@ -117,8 +117,7 @@ for resp, err := range client.Models.GenerateContentStream(ctx, "gemini-3.8-flas
 - **Formats:** video/x-flv, video/quicktime, video/mpeg, video/mp4, video/webm, video/wmv, video/3gpp.
 - **Tokenization (Gemini 3 models, default 1 FPS sampled):**
   - `MEDIA_RESOLUTION_HIGH`: 280 tokens per frame
-  - `MEDIA_RESOLUTION_MEDIUM`: 70 tokens per frame (default)
-  - `MEDIA_RESOLUTION_LOW`: 70 tokens per frame
+  - `MEDIA_RESOLUTION_MEDIUM` and `MEDIA_RESOLUTION_LOW`: 70 tokens per frame as recorded by the original pass; not re-verified in the audit, check the video understanding page before budgeting tokens for imports
 - **YouTube URLs:** Supported; public or account-owned videos. Max 1 YouTube URL per prompt (distinct from other video files).
 - **Agentic Video Processing** (Preview): Dynamically navigates long videos instead of static frame processing; uses fewer tokens, better for hour-long lectures/meetings; requires `media_processing="AGENTIC"` in request and model must support it (3.8/3.7/3.6 Flash, 3.5 Flash-Lite).
 - **SDK:** `genai.NewPartFromURI("gs://bucket/video.mp4", "video/mp4")` + optional `genai.VideoMetadata{StartOffset, EndOffset, FPS}` to clip/resample.
@@ -199,7 +198,7 @@ resp, err := client.Models.GenerateContent(ctx, "gemini-2.5-flash",
 ```
 
 **Limitations:** Cannot combine with non-search tools (function calling, RAG) in same request. Multiple tools allowed only if all are search tools.  
-**Compatibility with Structured Output:** Cannot combine Google Search tool with structured output (`ResponseSchema`/`ResponseJsonSchema`) in the same request.
+**Compatibility with Structured Output:** Unverified. The grounding page does not state this either way; test before relying on Search plus `ResponseSchema` in one request. Not needed for v1.
 
 ## Thinking / Reasoning
 
@@ -227,7 +226,7 @@ config := &genai.GenerateContentConfig{
 - Manual mode: must return `thought_signature` (opaque bytes) from model response in next request for context continuity.
 - **Gemini 3 strict validation:** If expected thought signature is missing on function-call responses, model returns 400 error. Omitting from non-function-call responses recommended but not required.
 
-**Temperature Deprecated for Gemini 3:** Do not set `temperature`, `top_p`, or `top_k` for Gemini 3 models; model manages sampling. Specifying them is ignored (Gemini 3.5 Flash-Lite throws error if custom frequency_penalty/presence_penalty set).
+**Sampling parameters:** On Gemini 3.5 Flash-Lite, custom `temperature`, `top_k` and `top_p` values are ignored, and custom frequency or presence penalties throw an error (model card, "potentially breaking changes"). The 3.8 Flash model card lists tunable defaults (temperature 1.0, topP 0.95, topK 64) and does not carry that warning. Leave sampling at defaults for both.
 
 **Billing:** Thought tokens (internal reasoning) are billed as output tokens. Visible in `usage_metadata.thoughts_token_count`.
 
@@ -271,11 +270,11 @@ resp.UsageMetadata.TotalTokenCount
 | **Gemini 2.5 Flash-Lite** | $0.10 | $0.40 | $0.01 | GA; retiring Oct 20, 2026 |
 
 **Context Caching:**
-- **Implicit (90% discount):** Enabled by default; $0.09/$0.135 per 1M cached input tokens (Gemini 3), no storage cost.
+- **Implicit (90% discount):** Enabled by default; cached input is billed at the rate in the table above ($0.075 per 1M for 3.8 Flash during intro pricing, $0.03 for 3.5 Flash-Lite, global endpoint), no storage cost.
 - **Explicit (90% discount + storage):** Up to 1 hour TTL; storage billed per million token-hours.
 - **Minimum cached content:** 1,024 tokens.
 
-**Rate Limits (Standard PayGo, Gemini models):**
+**Rate Limits (Standard PayGo usage tiers, organisation-level baseline TPM by 30-day spend; no separate RPM limit; tiers do not apply to preview models):**
 - **Tier 1** ($10–$250/30d): 2,000,000 TPM (Flash/Lite), 500,000 TPM (Pro)
 - **Tier 2** ($250–$2k): 4,000,000 TPM (Flash/Lite), 1M TPM (Pro)
 - **Tier 3** ($2k–$50k): 10,000,000 TPM (Flash/Lite), 2M TPM (Pro)
@@ -287,14 +286,9 @@ resp.UsageMetadata.TotalTokenCount
 
 ## Regional Availability
 
-**Gemini 3.8 Flash (GA September 2, 2026):**
-- Global endpoint: Yes
-- Multi-region: us (United States), eu (European Union)
-- Regional: me-central1 (Dammam), me-west1 (Tel Aviv), us-central1, europe-west2, europe-west3, asia-northeast1, asia-south1, asia-southeast1, australia-southeast1
+**Gemini 3.8 Flash and Gemini 3.5 Flash-Lite are served only from `global`, `us` and `eu`.** Both model cards list "Global: global; Multi-region: us, eu" for model availability, Standard PayGo and Provisioned Throughput. The locations table has empty cells for every Gemini generative model under Tel Aviv (`me-west1`), Doha (`me-central1`) and Dammam (`me-central2`). There is no Middle East endpoint for generation.
 
-**For Recipe App (Middle East users):** Use `me-central1` (Dammam) or `me-west1` (Tel Aviv) for ML processing residency within Middle East; global endpoint routes to nearest capacity pool.
-
-**Data Residency:** Choose jurisdiction-specific endpoint (e.g., `eu` for EU, `us` for US) to keep ML processing in-region. Global endpoint offers no residency guarantee. Data at rest respects selected location; ML processing respects endpoint choice.
+**For the recipe app:** call the `global` endpoint (`Location: "global"`) from the Go service, which runs in `me-west1` per the region research. `global` is also the cheapest endpoint. It gives no processing-location guarantee; `eu` is the fallback if EU-only processing is ever required, at a 10% premium.
 
 ## Minimal Implementation Scaffold
 
@@ -314,7 +308,7 @@ func main() {
     // Create client for Vertex AI backend (ADC automatic on Cloud Run)
     client, err := genai.NewClient(ctx, &genai.ClientConfig{
         Project:  "recipe-app-508817",     // Dev project
-        Location: "global",                 // or me-central1 for ME residency
+        Location: "global",                 // no Middle East endpoint exists; "eu" or "us" are the only alternatives
         Backend:  genai.BackendVertexAI,
     })
     if err != nil {
@@ -397,3 +391,13 @@ func main() {
 - [Model versions and lifecycle](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions)
 - [Deployments and regional endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/locations)
 - [Data residency](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/data-residency)
+
+## Audit notes (2026-09-17)
+
+The first pass of this document was completed by a smaller model after a rate-limit interruption. It was then audited line by line against the primary sources.
+
+Verified as written: model IDs, GA dates and retirement date, context and output limits, thinking levels and defaults, image/video/audio/PDF limits, all prices in the pricing table, grounding prices, the Standard PayGo tier table, SDK module and streaming shape.
+
+Corrected: the regional availability section (it wrongly listed `me-central1`, `me-west1` and other single regions, and mislabelled `me-central1` as Dammam; it is Doha), the implicit caching price line, the sampling-parameter claim (it over-generalised a 3.5 Flash-Lite note to all Gemini 3 models), and the missing 10% non-global price premium.
+
+Still unverified: whether Google Search grounding can be combined with structured output, and the per-frame video token counts. The SDK version number (v1.71.0) and the exact `genai.Schema` field list were not re-checked; confirm against pkg.go.dev when scaffolding.
