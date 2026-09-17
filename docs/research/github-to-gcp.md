@@ -1,6 +1,6 @@
 # GitHub Actions to GCP: Workload Identity Federation and Deploys
 
-**Research Date:** 2026-09-17  
+**Research Date:** 2026-09-17 (first pass by a smaller model after a rate-limit interruption; audited and corrected the same day, see Audit notes at the end)  
 **Ticket:** Issue #14  
 **Map:** Issue #1
 
@@ -129,12 +129,17 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
   --member="serviceAccount:$DEPLOYER_SA" \
   --role="roles/run.admin"
 
-# Deployment from source requires Cloud Run Builder role on Compute Engine default SA
-gcloud iam service-accounts add-iam-policy-binding \
-  "PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
-  --project="PROJECT_ID" \
-  --role="roles/run.builder" \
-  --member="serviceAccount:$DEPLOYER_SA"
+# Deploying from source: the deployer needs Cloud Run Source Developer
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:$DEPLOYER_SA" \
+  --role="roles/run.sourceDeveloper"
+
+# Deploying from source: the BUILD identity (Compute Engine default SA unless overridden)
+# needs Cloud Run Builder, granted at PROJECT level. This is the command from the
+# Cloud Run "Deploy from source" page; it is a one-time admin step, not a deployer permission.
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+  --role="roles/run.builder"
 
 # Service Account User (allows running service as the Cloud Run service identity)
 gcloud projects add-iam-policy-binding PROJECT_ID \
@@ -173,7 +178,8 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 | Role | Purpose | Permissions |
 |------|---------|-------------|
 | `roles/run.admin` | Full Cloud Run management | Create, update, delete services; manage IAM and networking |
-| `roles/run.builder` | Cloud Build access for source deploys | `cloudbuild.builds.*`, artifact registry uploads, logging |
+| `roles/run.sourceDeveloper` | Deployer: deploy from source | Required on the project by the Cloud Run source-deploy page, with Service Usage Consumer and Service Account User on the service identity |
+| `roles/run.builder` | Build identity, not the deployer | Granted to the Compute Engine default service account at project level so Cloud Build can build the source |
 | `roles/iam.serviceAccountUser` | Impersonate runtime service account | `iam.serviceAccounts.actAs` (allows running service as SA) |
 | `roles/artifactregistry.writer` | Push/pull container images | Read, write, and delete artifacts |
 | `roles/firebaserules.admin` | Full Firestore Rules management | Create/update/delete rulesets and releases |
@@ -213,16 +219,13 @@ Always run `actions/checkout` **before** `google-github-actions/auth`:
   with:
     workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
     service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
-    token_format: "access_token"
-    access_token_lifetime: "900s"  # 15 minutes
 ```
 
 **Inputs:**
 
 - `workload_identity_provider`: Full resource name from step 2 above (e.g., `projects/674819344439/locations/global/workloadIdentityPools/github/providers/github-provider`)
 - `service_account`: Email of deployer SA created above
-- `token_format`: "access_token" for use with gcloud, Firebase CLI, and docker
-- `access_token_lifetime`: Maximum 3600s (1 hour); shorter is more secure
+- `token_format` is not needed here. `deploy-cloudrun` and the Firebase CLI both read the credentials file the action exports; request an access token only for tools that cannot, such as `docker login`.
 
 **Outputs:**
 
@@ -274,22 +277,9 @@ The action calls `gcloud run deploy --source` which:
 
 ### Deploy Firestore Rules and Indexes
 
-```yaml
-- name: Deploy Firestore
-  env:
-    FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
-  run: |
-    npm install -g firebase-tools
-    
-    # Set project (using .firebaserc alias or --project flag)
-    firebase deploy \
-      --project "${{ env.GCP_PROJECT_ID }}" \
-      --only firestore:rules,firestore:indexes \
-      --non-interactive \
-      --force
-```
+Do not pass the Google access token as `FIREBASE_TOKEN`. That variable is the legacy `firebase login:ci` refresh token, which the Firebase CLI docs mark as less secure, and an OAuth access token is not a valid value for it. Use the credentials file the auth action writes:
 
-**Alternative: Using credentials file (preferred for CI)**
+**Credentials file from `google-github-actions/auth`**
 
 ```yaml
 - name: Deploy Firestore
@@ -353,7 +343,6 @@ jobs:
       id-token: write
     environment:
       name: dev
-      url: https://recipe-api-dev.run.app
     steps:
       - uses: actions/checkout@v4
       - id: auth
@@ -361,7 +350,6 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_DEV_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_DEV_SERVICE_ACCOUNT_EMAIL }}
-          token_format: "access_token"
       
       - id: deploy
         uses: google-github-actions/deploy-cloudrun@v3
@@ -387,7 +375,6 @@ jobs:
       id-token: write
     environment:
       name: prod
-      url: https://recipe-api.run.app
     steps:
       - uses: actions/checkout@v4
       - id: auth
@@ -395,7 +382,6 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_PROD_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_PROD_SERVICE_ACCOUNT_EMAIL }}
-          token_format: "access_token"
       
       - id: deploy
         uses: google-github-actions/deploy-cloudrun@v3
@@ -500,7 +486,7 @@ The attribute mapping in the provider maps the `sub` to `google.subject`, which 
 
 **Root cause:** The Compute Engine default service account needs `roles/run.builder` to run builds. If the deployer SA is not also an admin of the project, it cannot grant this role to the Compute Engine SA.
 
-**Solution:** Ensure the deployer SA has `roles/iam.serviceAccountUser` on the Compute Engine default service account (PROJECT_NUMBER-compute@developer.gserviceaccount.com), and that the Compute Engine SA has `roles/run.builder`.
+**Solution:** An admin grants `roles/run.builder` to the Compute Engine default service account at project level, once per project (command above). The deployer needs `roles/run.sourceDeveloper` on the project and `roles/iam.serviceAccountUser` on the service identity the Cloud Run service runs as. Prefer a dedicated runtime service account over the Compute Engine default for the service itself.
 
 [Source: Cloud Run — Deploying from source code](https://docs.cloud.google.com/run/docs/deploying-source-code)]
 
@@ -563,11 +549,14 @@ gcloud projects add-iam-policy-binding recipe-app-508817 \
   --member="serviceAccount:$DEPLOYER_SA" \
   --role="roles/run.admin"
 
-gcloud iam service-accounts add-iam-policy-binding \
-  "674819344439-compute@developer.gserviceaccount.com" \
-  --project=recipe-app-508817 \
-  --role="roles/run.builder" \
-  --member="serviceAccount:$DEPLOYER_SA"
+gcloud projects add-iam-policy-binding recipe-app-508817 \
+  --member="serviceAccount:$DEPLOYER_SA" \
+  --role="roles/run.sourceDeveloper"
+
+# Build identity gets Cloud Run Builder at project level (one-time admin step)
+gcloud projects add-iam-policy-binding recipe-app-508817 \
+  --member="serviceAccount:674819344439-compute@developer.gserviceaccount.com" \
+  --role="roles/run.builder"
 
 gcloud projects add-iam-policy-binding recipe-app-508817 \
   --member="serviceAccount:$DEPLOYER_SA" \
@@ -617,3 +606,15 @@ All claims in this document are backed by official Google Cloud and GitHub docum
 - [Firebase — Deploying Firestore rules and indexes](https://firebase.google.com/docs/rules/manage-deploy)
 - [GitHub Actions — OIDC token claims](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
 - [GitHub Actions — Environments and deployments](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment)
+
+---
+
+## Audit notes (2026-09-17)
+
+Verified as written: the repository id (1373086201) and owner id (55894360), checked with `gh api`; the immutable `sub` claim format for repositories created after July 15, 2026, which applies to this repository; the pool, provider and `principalSet` binding shape; Firebase CLI authentication through `GOOGLE_APPLICATION_CREDENTIALS`; the auth README's warning that direct Workload Identity Federation is not supported by the Firebase Admin SDK, which is why this design impersonates a service account.
+
+Corrected: the `roles/run.builder` command. The first pass bound it on the Compute Engine service account resource with the deployer as member, which grants nothing useful. Google's page grants it to the Compute Engine default service account at project level, and asks for `roles/run.sourceDeveloper` on the deployer. Removed the `FIREBASE_TOKEN` variant, the unnecessary `token_format`, and placeholder service URLs.
+
+Judgement call left in place: `roles/run.admin` on the deployer is broader than `roles/run.developer`. It is only needed if the workflow changes the service's IAM policy, for example `--allow-unauthenticated`. The recipe API must accept calls from phones carrying Firebase ID tokens, so the service will be publicly invokable and verify tokens itself; setting that once by hand lets the deployer drop to `roles/run.developer`. Decide this in the backend scaffold ticket.
+
+Not re-verified: `roles/firebaserules.admin`, `roles/datastore.indexAdmin` and `roles/firebase.viewer` as the minimum set for `firebase deploy --only firestore`. Expect to adjust on the first CI run.
