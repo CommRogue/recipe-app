@@ -11,11 +11,11 @@ The Constraints and Preferences a user has stored. It may be empty.
 _Avoid_: Settings, food preferences, dietary profile
 
 **Constraint**:
-A hard rule about food the user will never accept violated, such as an allergy, a diet like vegan or kosher, or an excluded ingredient class like seed oils. A generated recipe that breaks a Constraint is invalid, and nothing in a Generation Request outranks one: an ask that collides with a Constraint is adapted, not obeyed.
+A hard rule about food the user will never accept violated, such as an allergy, a diet like vegan or kosher, or an excluded ingredient class like seed oils. A generated recipe that breaks a Constraint is invalid, and nothing in a Generation Request outranks one: an ask that collides with a Constraint is adapted, not obeyed. Constraints are honoured by the prompt alone: no Draft is checked after generation, and the app never claims one was (ADR 0006).
 _Avoid_: Restriction, dietary restriction, sensitivity, hard preference
 
 **Listed Constraint**:
-A Constraint picked from the app's closed catalogue of diets and allergens (`schema/constraint-catalogue.json`, ADR 0005). Its meaning is fixed by the app, so it can be checked without a model.
+A Constraint picked from the app's closed catalogue of diets and allergens (`schema/constraint-catalogue.json`, ADR 0005). Its meaning is fixed by the app rather than by the user's wording, so it could be checked without a model; v1 does not check (ADR 0006).
 _Avoid_: Standard constraint, preset, tag
 
 **Custom Constraint**:

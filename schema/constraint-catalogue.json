@@ -1,5 +1,5 @@
 {
-  "$comment": "The closed set of Listed Constraints (ADR 0005). Shared by the Flutter app (labels, pickers) and the Go service (one canonical prompt sentence and, where #21 adds them, ingredient checks per id). Ids are permanent: never rename or reuse one. Adding an id is backwards compatible; a reader that meets an unknown id keeps it on write and shows it by id (H19).",
+  "$comment": "The closed set of Listed Constraints (ADR 0005). Shared by the Flutter app (labels, pickers) and the Go service (one canonical prompt sentence per id; no ingredient checks, ADR 0006). Ids are permanent: never rename or reuse one. Adding an id is backwards compatible; a reader that meets an unknown id keeps it on write and shows it by id (H19).",
   "catalogueVersion": 1,
   "diets": [
     { "id": "diet.vegan", "label": "Vegan" },
