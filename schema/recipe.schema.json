@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://panwise.app/schema/recipe.schema.json",
   "title": "Panwise recipe contract",
-  "description": "Draft of the Go-to-Dart contract (ADR 0002, ADR 0004). Draft and Recipe share one body; a Recipe adds ownership and revision. Readers ignore unknown fields and map unknown enum values to the fallback named on each enum (H19). Timestamps are RFC 3339 strings on the wire; their Firestore representation is decided in #22.",
+  "description": "Draft of the Go-to-Dart contract (ADR 0002, ADR 0004). Draft and Recipe share one body; a Recipe adds ownership and revision. Readers ignore unknown fields and map unknown enum values to the fallback named on each enum (H19). Timestamps are RFC 3339 strings on the wire and Firestore Timestamps in a stored Recipe (docs/firestore-data-model.md).",
   "$defs": {
     "Unit": {
       "description": "Closed set, metric canonical. g and ml are converted at display (g to oz/lb, ml to fl oz/cups, and up to kg/l); tsp, tbsp and the count units are shown as written in both systems. The model never emits imperial units, kg or l. Unknown value fallback: show the quantity with no unit and do not convert.",
@@ -197,7 +197,7 @@
       }
     },
     "Recipe": {
-      "description": "A saved Draft. Written by the client straight to Firestore (ADR 0001). Renders from this document alone (H5): Rating and Collection membership are owner-private and their placement is decided in #22.",
+      "description": "A saved Draft. Written by the client straight to Firestore (ADR 0001). Renders from this document alone (H5): everything owner-private sits in the `private` map, which a shared or exported copy leaves out (ADR 0007).",
       "allOf": [{ "$ref": "#/$defs/Draft" }],
       "type": "object",
       "required": ["ownerUid", "revision", "savedAt", "updatedAt"],
@@ -209,11 +209,27 @@
           "minimum": 1
         },
         "savedAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "private": { "$ref": "#/$defs/RecipePrivate" }
+      }
+    },
+    "RecipePrivate": {
+      "description": "Owner-private data kept on the Recipe document for query convenience (ADR 0007, H5). Never needed to render the Recipe, and never part of a Draft. A missing map or member means unrated, in no Collection, never cooked.",
+      "type": "object",
+      "properties": {
+        "rating": { "oneOf": [{ "$ref": "#/$defs/Rating" }, { "type": "null" }] },
+        "collectionIds": {
+          "description": "Ids of the owner's Collections this Recipe belongs to. An id whose Collection no longer exists is ignored.",
+          "type": "array",
+          "maxItems": 50,
+          "items": { "type": "string" }
+        },
+        "cookCount": { "description": "Finished Cooking Sessions of this Recipe (H10).", "type": "integer", "minimum": 0 },
+        "lastCookedAt": { "type": ["string", "null"], "format": "date-time" }
       }
     },
     "Rating": {
-      "description": "Owner-private (H5, H9). Defined here so Go and Dart share the shape; where it is stored is decided in #22.",
+      "description": "Owner-private (H5, H9). Stored at `private.rating` on the Recipe document (ADR 0007).",
       "type": "object",
       "required": ["stars", "ratedAt", "recipeRevision"],
       "properties": {

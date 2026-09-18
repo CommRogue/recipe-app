@@ -48,6 +48,10 @@ _Avoid_: Constraint (reserved for hard food rules), filter, quota
 A recipe the model has produced that the user has not yet saved. A Draft is refined or discarded; only saving turns it into a Recipe, which keeps the Draft's id. A Draft has the same content as a Recipe and knows nothing about the Generation Request behind it.
 _Avoid_: Generated recipe, result, suggestion
 
+**Draft Chain**:
+The Draft a Generation Request produced and the Drafts its Refinements produced, in order. Overrides hold for the whole chain, and the limit on Refinements is counted per chain. An unsaved Draft Chain is kept for seven days so the user can come back to it, then it is gone.
+_Avoid_: Conversation, thread, session, history
+
 **Refinement**:
 An instruction applied to a Draft ("make it spicier", "swap the tofu for chicken") that yields a new Draft with its own id.
 _Avoid_: Edit, regenerate, tweak
