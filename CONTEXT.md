@@ -88,7 +88,7 @@ _Avoid_: Cooking mode (that is the screen, not the state), cook
 ### Plans
 
 **Plan**:
-What a user is entitled to: Free or Paid. The Plan sets the Quota and the cap on saved Recipes.
+What a user is entitled to: Free or Paid. The Plan sets the Quota and the cap on saved Recipes, and gates nothing else. The Paid Plan is sold as "Panwise Plus"; the entitlements are recorded on #5.
 _Avoid_: Tier, level, subscription (see below)
 
 **Subscription**:
@@ -96,5 +96,5 @@ The store purchase that grants the Paid Plan while it is active.
 _Avoid_: Plan, membership, premium
 
 **Quota**:
-The number of generations a Plan allows within a period.
+The number of generations a Plan allows within a week, counted from the user's first generation of that week. A Refinement is not charged against Quota, but a Draft can be refined only a few times before the user has to generate again.
 _Avoid_: Generation limit (reserved for per-request caps), allowance, credits
