@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://panwise.app/schema/recipe.schema.json",
+  "title": "Panwise recipe contract",
+  "description": "Draft of the Go-to-Dart contract (ADR 0002, ADR 0004). Draft and Recipe share one body; a Recipe adds ownership and revision. Readers ignore unknown fields and map unknown enum values to the fallback named on each enum (H19). Timestamps are RFC 3339 strings on the wire; their Firestore representation is decided in #22.",
+  "$defs": {
+    "Unit": {
+      "description": "Closed set, metric canonical. g and ml are converted at display (g to oz/lb, ml to fl oz/cups, and up to kg/l); tsp, tbsp and the count units are shown as written in both systems. The model never emits imperial units, kg or l. Unknown value fallback: show the quantity with no unit and do not convert.",
+      "enum": ["g", "ml", "tsp", "tbsp", "piece", "clove", "slice", "sprig", "bunch", "pinch"]
+    },
+    "MealType": {
+      "description": "Unknown value fallback: drop the value.",
+      "enum": ["breakfast", "lunch", "dinner", "snack", "dessert", "drink"]
+    },
+    "Ingredient": {
+      "type": "object",
+      "required": ["id", "name", "quantity", "unit"],
+      "properties": {
+        "id": {
+          "description": "Unique within the recipe, referenced by Step.ingredientIds. Stable across revisions of the same Recipe.",
+          "type": "string",
+          "pattern": "^i[0-9]+$"
+        },
+        "name": {
+          "description": "The ingredient alone: 'onion', not '1 large onion, finely diced'.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "quantity": {
+          "description": "Null together with unit when there is no amount ('to taste', 'for greasing'); the reason goes in preparation.",
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "oneOf": [{ "$ref": "#/$defs/Unit" }, { "type": "null" }]
+        },
+        "preparation": {
+          "description": "How the ingredient is prepared or used: 'finely diced', 'to taste', 'for serving'.",
+          "type": ["string", "null"],
+          "maxLength": 80
+        },
+        "group": {
+          "description": "Optional heading the ingredient is listed under, such as 'For the sauce'. An ingredient used in two separate portions is two lines, usually in different groups, so a step can reference the right amount.",
+          "type": ["string", "null"],
+          "maxLength": 40
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "Step": {
+      "type": "object",
+      "required": ["text", "ingredientIds"],
+      "properties": {
+        "text": {
+          "description": "Names ingredients without their quantities and leaves out oven and oil temperatures; the client renders both beside the step from ingredientIds and temperatureC in the viewer's unit system. Lengths, which have no structured home, are written in both systems: '2 cm (3/4 in)'.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "ingredientIds": {
+          "description": "Ingredients first used in this step. Every id must exist in ingredients; the Go post-process stage rejects a Draft that breaks this.",
+          "type": "array",
+          "items": { "type": "string", "pattern": "^i[0-9]+$" },
+          "uniqueItems": true
+        },
+        "timerSeconds": {
+          "description": "Set only where the step contains a real wait ('simmer for 15 minutes'). The Cooking Session offers it as a timer. Not reconciled with the recipe's time totals.",
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "temperatureC": {
+          "description": "Celsius, converted to Fahrenheit at display.",
+          "type": ["number", "null"]
+        }
+      }
+    },
+    "Cookware": {
+      "description": "One piece of cookware. The cookware Generation Limit counts the entries of the cookware list.",
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 }
+      }
+    },
+    "Macros": {
+      "description": "Per serving.",
+      "type": "object",
+      "required": ["source", "calories", "proteinG", "carbsG", "fatG", "fibreG"],
+      "properties": {
+        "source": {
+          "description": "Drives the 'estimate' label. Unknown value fallback: treat as an estimate.",
+          "enum": ["model_estimate"]
+        },
+        "calories": { "description": "kcal.", "type": "number", "minimum": 0 },
+        "proteinG": { "type": "number", "minimum": 0 },
+        "carbsG": { "type": "number", "minimum": 0 },
+        "fatG": { "type": "number", "minimum": 0 },
+        "fibreG": { "type": "number", "minimum": 0 }
+      }
+    },
+    "Cover": {
+      "description": "Tagged value. The emoji is always kept, so removing a photo needs no model call. Unknown kind fallback: show the emoji.",
+      "type": "object",
+      "required": ["kind", "emoji"],
+      "properties": {
+        "kind": { "enum": ["emoji", "photo"] },
+        "emoji": { "type": "string", "minLength": 1 },
+        "photoPath": {
+          "description": "Cloud Storage path under the owner's per-Recipe prefix, never a tokenised download URL (H13). Present when kind is 'photo'. A Draft never has one.",
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "Source": {
+      "description": "Provenance, present on Drafts and Recipes (H4). v1 only writes kind 'generated'. Unknown kind fallback: render the recipe and show no attribution.",
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["generated"] },
+        "url": { "type": ["string", "null"] },
+        "attribution": { "type": ["string", "null"] },
+        "derivedFrom": {
+          "description": "The Recipe this one was copied from, for later sharing and versioning. Never set in v1. A Refinement does not set it: the chain of Drafts belongs to the generation flow, not to the recipe.",
+          "type": ["object", "null"],
+          "required": ["recipeId", "revision"],
+          "properties": {
+            "recipeId": { "type": "string" },
+            "revision": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "Draft": {
+      "description": "What the Go service returns. Holds nothing about the Generation Request that produced it (H16).",
+      "type": "object",
+      "required": [
+        "id", "schemaVersion", "source", "createdAt",
+        "title", "description", "servings", "activeMinutes", "passiveMinutes",
+        "ingredients", "steps", "cookware", "macros", "cuisine", "mealTypes", "cover"
+      ],
+      "properties": {
+        "id": {
+          "description": "UUIDv7 minted by the Go service. Globally unique, not only per owner. Saving keeps it as the Recipe id; a Refinement yields a Draft with a new id.",
+          "type": "string",
+          "format": "uuid"
+        },
+        "schemaVersion": { "const": 1 },
+        "source": { "$ref": "#/$defs/Source" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 240 },
+        "servings": { "type": "number", "exclusiveMinimum": 0 },
+        "activeMinutes": {
+          "description": "Hands-on time. activeMinutes + passiveMinutes is the time to make, which the time Generation Limit is checked against.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "passiveMinutes": {
+          "description": "Unattended time: baking, resting, marinating.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "ingredients": {
+          "description": "The ingredient Generation Limit counts the entries of this list.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/Ingredient" },
+          "minItems": 1,
+          "maxItems": 40
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Step" },
+          "minItems": 1,
+          "maxItems": 30
+        },
+        "cookware": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Cookware" },
+          "maxItems": 15
+        },
+        "macros": { "$ref": "#/$defs/Macros" },
+        "cuisine": {
+          "description": "One free-text cuisine such as 'Thai'. Null when unknown, which a generated Draft never is.",
+          "type": ["string", "null"],
+          "maxLength": 40
+        },
+        "mealTypes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/MealType" },
+          "uniqueItems": true
+        },
+        "cover": { "$ref": "#/$defs/Cover" }
+      }
+    },
+    "Recipe": {
+      "description": "A saved Draft. Written by the client straight to Firestore (ADR 0001). Renders from this document alone (H5): Rating and Collection membership are owner-private and their placement is decided in #22.",
+      "allOf": [{ "$ref": "#/$defs/Draft" }],
+      "type": "object",
+      "required": ["ownerUid", "revision", "savedAt", "updatedAt"],
+      "properties": {
+        "ownerUid": { "type": "string" },
+        "revision": {
+          "description": "Starts at 1. Goes up when the recipe content changes (anything a cook would notice: title, servings, ingredients, steps, times, cookware). Replacing the Cover only touches updatedAt. v1 has no way to change content, so it is always 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "savedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Rating": {
+      "description": "Owner-private (H5, H9). Defined here so Go and Dart share the shape; where it is stored is decided in #22.",
+      "type": "object",
+      "required": ["stars", "ratedAt", "recipeRevision"],
+      "properties": {
+        "stars": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "note": { "type": ["string", "null"], "maxLength": 1000 },
+        "ratedAt": { "type": "string", "format": "date-time" },
+        "recipeRevision": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

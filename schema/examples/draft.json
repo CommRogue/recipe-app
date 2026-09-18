@@ -1,0 +1,32 @@
+{
+  "id": "01994f5e-7c3a-7b2e-9d41-5a6f0c2e8b17",
+  "schemaVersion": 1,
+  "source": { "kind": "generated" },
+  "createdAt": "2026-09-18T09:30:00Z",
+  "title": "Miso butter noodles with crispy chickpeas",
+  "description": "Glossy, savoury noodles with a crunchy high-protein topping. One pan and one pot.",
+  "servings": 2,
+  "activeMinutes": 15,
+  "passiveMinutes": 10,
+  "ingredients": [
+    { "id": "i1", "name": "chickpeas, cooked", "quantity": 240, "unit": "g", "preparation": "drained and patted dry", "group": "For the chickpeas" },
+    { "id": "i2", "name": "olive oil", "quantity": 1, "unit": "tbsp", "group": "For the chickpeas" },
+    { "id": "i3", "name": "dried wheat noodles", "quantity": 180, "unit": "g", "group": "For the noodles" },
+    { "id": "i4", "name": "butter", "quantity": 30, "unit": "g", "group": "For the noodles" },
+    { "id": "i5", "name": "white miso", "quantity": 2, "unit": "tbsp", "group": "For the noodles" },
+    { "id": "i6", "name": "garlic", "quantity": 2, "unit": "clove", "preparation": "finely grated", "group": "For the noodles" },
+    { "id": "i7", "name": "spring onion", "quantity": 2, "unit": "piece", "preparation": "thinly sliced", "group": "For the noodles" },
+    { "id": "i8", "name": "chilli flakes", "quantity": null, "unit": null, "preparation": "to taste", "group": "For the noodles", "optional": true }
+  ],
+  "steps": [
+    { "text": "Heat the oven. Toss the chickpeas with the olive oil on a baking tray and roast until crisp, shaking the tray halfway.", "ingredientIds": ["i1", "i2"], "timerSeconds": 600, "temperatureC": 220 },
+    { "text": "Meanwhile, boil the noodles until just tender. Keep a cup of the cooking water, then drain.", "ingredientIds": ["i3"], "timerSeconds": 240 },
+    { "text": "Melt the butter in the empty pot over low heat, stir in the miso and garlic, then loosen with a splash of the cooking water until glossy.", "ingredientIds": ["i4", "i5", "i6"] },
+    { "text": "Toss the noodles through the sauce. Top with the chickpeas, spring onion and chilli flakes.", "ingredientIds": ["i7", "i8"] }
+  ],
+  "cookware": [{ "name": "baking tray" }, { "name": "large pot" }],
+  "macros": { "source": "model_estimate", "calories": 640, "proteinG": 24, "carbsG": 88, "fatG": 21, "fibreG": 11 },
+  "cuisine": "Japanese-inspired",
+  "mealTypes": ["lunch", "dinner"],
+  "cover": { "kind": "emoji", "emoji": "🍜" }
+}
