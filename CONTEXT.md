@@ -1,6 +1,6 @@
-# Recipe App
+# Panwise
 
-An AI-centred recipe app: a user's food profile steers generated recipes, which they then save, organise, rate and cook from.
+Panwise (working name, bundle id `app.panwise`, see ADR 0003) is an AI-centred recipe app: a user's food profile steers generated recipes, which they then save, organise, rate and cook from.
 
 ## Language
 
