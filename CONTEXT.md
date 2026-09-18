@@ -6,18 +6,38 @@ Panwise (working name, bundle id `app.panwise`, see ADR 0003) is an AI-centred r
 
 ### Food profile
 
+**Profile**:
+The Constraints and Preferences a user has stored. It may be empty.
+_Avoid_: Settings, food preferences, dietary profile
+
 **Constraint**:
-A hard rule about food the user will never accept violated, such as an allergy, a diet like vegan or kosher, or an excluded ingredient class like seed oils. A generated recipe that breaks a Constraint is invalid.
+A hard rule about food the user will never accept violated, such as an allergy, a diet like vegan or kosher, or an excluded ingredient class like seed oils. A generated recipe that breaks a Constraint is invalid, and nothing in a Generation Request outranks one: an ask that collides with a Constraint is adapted, not obeyed.
 _Avoid_: Restriction, dietary restriction, sensitivity, hard preference
 
+**Listed Constraint**:
+A Constraint picked from the app's closed catalogue of diets and allergens (`schema/constraint-catalogue.json`, ADR 0005). Its meaning is fixed by the app, so it can be checked without a model.
+_Avoid_: Standard constraint, preset, tag
+
+**Custom Constraint**:
+A Constraint in the user's own words ("no seed oils"), kept exactly as typed.
+_Avoid_: Free-text constraint, other
+
 **Preference**:
-A soft signal that steers generation without forbidding anything: liked and disliked ingredients, textures, macro leanings like high protein or high fibre, qualities like filling or voluminous.
+A soft signal that steers generation without forbidding anything: a liked ingredient, a disliked ingredient, or a quality in the user's own words such as high protein, crispy, filling or voluminous. The ask of a Generation Request outranks a Preference.
 _Avoid_: Taste, like/dislike, soft constraint
+
+**Override**:
+A change to the Profile that holds for one Generation Request and the Refinements of its Drafts: switching off a Constraint or Preference, or adding a One-off Constraint. It is never saved to the Profile.
+_Avoid_: Guest mode, temporary profile, exception
+
+**One-off Constraint**:
+A Listed or Custom Constraint added by an Override, for instance a guest's allergy.
+_Avoid_: Guest constraint, temporary constraint
 
 ### Generation
 
 **Generation Request**:
-Everything sent to the model to produce one recipe: the user's Constraints and Preferences, the Generation Limits for this request, and a free-text ask like "something Asian for tonight".
+Everything sent to the model to produce one recipe: the Constraints and Preferences of the user's Profile after any Overrides, the Generation Limits for this request, and a free-text ask like "something Asian for tonight".
 _Avoid_: Query, prompt (the prompt is the internal text built from a Generation Request)
 
 **Generation Limit**:
