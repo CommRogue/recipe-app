@@ -86,7 +86,7 @@ func post(h http.Handler, token, body string) *httptest.ResponseRecorder {
 func TestHealthzIsOpen(t *testing.T) {
 	h := newHandler(t, fakeGenerator{})
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/health", nil))
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"ok"`) {
 		t.Fatalf("%d %s", rec.Code, rec.Body.String())
 	}

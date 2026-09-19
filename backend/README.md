@@ -6,7 +6,7 @@ The one backend of the app (ADR 0002): a Go service on Cloud Run that turns a Ge
 
 ```
 cmd/server            wiring, config from env, graceful shutdown
-internal/httpapi      routes, JSON, error codes; /healthz and /v1/*
+internal/httpapi      routes, JSON, error codes; /health and /v1/*
 internal/auth         Firebase ID token middleware (Verifier interface)
 internal/generate     the staged pipeline (H14): Request, Service, seams
 internal/profile      Profile, caps, Overrides, effective set, Firestore loader
@@ -20,7 +20,7 @@ Two files are byte-identical copies of the shared contract and are embedded into
 
 ## API
 
-All routes except `/healthz` need `Authorization: Bearer <Firebase ID token>` (H20). Errors are `{"error": {"code", "message"}}`.
+All routes except `/health` need `Authorization: Bearer <Firebase ID token>` (H20). Errors are `{"error": {"code", "message"}}`.
 
 `POST /v1/generate`
 
@@ -47,7 +47,7 @@ Needs Go 1.26 (the stock Ubuntu Go 1.22 cannot download a newer toolchain; insta
 ```sh
 cd backend
 GOOGLE_CLOUD_PROJECT=recipe-app-508817 go run ./cmd/server
-curl localhost:8080/healthz
+curl localhost:8080/health
 SERVICE_URL=http://localhost:8080 scripts/e2e-generate.sh
 ```
 

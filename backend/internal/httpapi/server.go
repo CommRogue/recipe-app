@@ -38,7 +38,9 @@ func NewHandler(d Deps) http.Handler {
 		d.GenerateTimeout = 90 * time.Second
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+	// Not /healthz: Google's front end answers that path itself on Cloud Run
+	// with a 404 and the request never reaches the container.
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
@@ -168,7 +170,7 @@ func (s *statusRecorder) WriteHeader(code int) {
 
 func logRequests(log *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/healthz" {
+		if r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
 			return
 		}

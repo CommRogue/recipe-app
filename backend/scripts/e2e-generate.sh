@@ -68,7 +68,7 @@ ID_TOKEN=$(curl -sS --fail -H "Content-Type: application/json" \
 echo "signed in as uid $TEST_UID" >&2
 
 # 3. Health, then generate.
-curl -sS --fail "$SERVICE_URL/healthz" >/dev/null && echo "healthz ok" >&2
+curl -sS --fail "$SERVICE_URL/health" >/dev/null && echo "health ok" >&2
 
 BODY=$(jq -cn --arg ask "$ASK" --argjson m "$MAX_MINUTES" '{ask: $ask, limits: {maxTotalMinutes: $m}}')
 echo "POST /v1/generate $BODY" >&2

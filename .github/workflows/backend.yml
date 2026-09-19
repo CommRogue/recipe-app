@@ -87,5 +87,11 @@ jobs:
             component=recipe-api
 
       - name: smoke test
-        run: curl --fail --silent --show-error "${{ steps.deploy.outputs.url }}/healthz"
         working-directory: .
+        run: |
+          # A brand-new service's URL can lag its Ready condition by a few seconds.
+          for i in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error "${{ steps.deploy.outputs.url }}/health"; then exit 0; fi
+            sleep 5
+          done
+          exit 1
