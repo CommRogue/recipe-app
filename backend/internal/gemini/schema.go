@@ -14,7 +14,10 @@ import (
 // step on property names and enums.
 //
 // Fields the service owns (id, schemaVersion, source, createdAt) are not
-// asked of the model.
+// asked of the model. minItems and maxItems are left out on purpose: Vertex
+// AI answers a bare 400 INVALID_ARGUMENT when the schema carries them
+// (verified against gemini-3.8-flash on 2026-09-19); the validator enforces
+// the list bounds instead.
 func BodySchema() *genai.Schema {
 	nullable := genai.Ptr(true)
 	return &genai.Schema{
@@ -30,9 +33,7 @@ func BodySchema() *genai.Schema {
 				Type: genai.TypeInteger, Description: "Unattended minutes: baking, resting, marinating.",
 			},
 			"ingredients": {
-				Type:     genai.TypeArray,
-				MinItems: genai.Ptr[int64](1),
-				MaxItems: genai.Ptr[int64](40),
+				Type: genai.TypeArray,
 				Items: &genai.Schema{
 					Type: genai.TypeObject,
 					Properties: map[string]*genai.Schema{
@@ -51,9 +52,7 @@ func BodySchema() *genai.Schema {
 				},
 			},
 			"steps": {
-				Type:     genai.TypeArray,
-				MinItems: genai.Ptr[int64](1),
-				MaxItems: genai.Ptr[int64](30),
+				Type: genai.TypeArray,
 				Items: &genai.Schema{
 					Type: genai.TypeObject,
 					Properties: map[string]*genai.Schema{
@@ -67,8 +66,7 @@ func BodySchema() *genai.Schema {
 				},
 			},
 			"cookware": {
-				Type:     genai.TypeArray,
-				MaxItems: genai.Ptr[int64](15),
+				Type: genai.TypeArray,
 				Items: &genai.Schema{
 					Type:       genai.TypeObject,
 					Properties: map[string]*genai.Schema{"name": {Type: genai.TypeString}},
