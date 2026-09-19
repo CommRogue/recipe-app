@@ -29,9 +29,17 @@ type Generator interface {
 	GenerateRecipe(ctx context.Context, p prompt.Prompt) (body json.RawMessage, usage Usage, err error)
 }
 
+// ChargeKind names what kind of operation a model call was, so a Quota
+// charge can weigh it (H15, #5). The scaffold only ever generates.
+type ChargeKind string
+
+// ChargeKindGeneration is a full recipe generation.
+const ChargeKindGeneration ChargeKind = "generation"
+
 // Usage is what a model call cost, for logs and, later, Quota charges by
 // kind (H15).
 type Usage struct {
+	Kind             ChargeKind
 	Model            string
 	PromptTokens     int
 	CandidateTokens  int
@@ -137,13 +145,14 @@ func (s *Service) Generate(ctx context.Context, uid string, req Request) (*Resul
 		return nil, err
 	}
 	usage.PromptVersion = pr.Version
+	usage.Kind = ChargeKindGeneration
 
 	draft, err := s.postProcess(body, req, log)
 	if err != nil {
 		return nil, err
 	}
 
-	chainID, err := s.Store.StoreFirstDraft(ctx, uid, draft, effective, pr.Version)
+	chainID, err := s.store().StoreFirstDraft(ctx, uid, draft, effective, pr.Version)
 	if err != nil {
 		// The user still gets the Draft; losing the chain record is logged,
 		// not fatal, until Draft Chains are implemented for real.
@@ -151,7 +160,7 @@ func (s *Service) Generate(ctx context.Context, uid string, req Request) (*Resul
 	}
 
 	log.InfoContext(ctx, "draft delivered",
-		"draftId", draft.ID, "chainId", chainID, "promptVersion", pr.Version, "model", usage.Model,
+		"draftId", draft.ID, "chainId", chainID, "promptVersion", pr.Version, "model", usage.Model, "kind", usage.Kind,
 		"promptTokens", usage.PromptTokens, "candidateTokens", usage.CandidateTokens, "thoughtTokens", usage.ThoughtTokens,
 		"modelLatencyMs", usage.ModelLatency.Milliseconds())
 
@@ -180,7 +189,7 @@ func (s *Service) checkConsent(context.Context, string) error { return nil }
 
 // Stage: Quota (seam, see QuotaChecker).
 func (s *Service) checkQuota(ctx context.Context, uid string) error {
-	if err := s.Quota.Check(ctx, uid); err != nil {
+	if err := s.quota().Check(ctx, uid); err != nil {
 		return fmt.Errorf("%w: %v", ErrQuotaExceeded, err)
 	}
 	return nil
@@ -258,11 +267,28 @@ func logLimitOverruns(l Limits, b *recipe.Body, log *slog.Logger) {
 	}
 }
 
+// The seams default to their scaffold implementations when unset, so a
+// Service{Profiles, Generator} is complete.
+
 func (s *Service) logger() *slog.Logger {
 	if s.Log != nil {
 		return s.Log
 	}
 	return slog.Default()
+}
+
+func (s *Service) quota() QuotaChecker {
+	if s.Quota != nil {
+		return s.Quota
+	}
+	return AlwaysAllow{}
+}
+
+func (s *Service) store() DraftStore {
+	if s.Store != nil {
+		return s.Store
+	}
+	return NopDraftStore{}
 }
 
 func (s *Service) now() time.Time {

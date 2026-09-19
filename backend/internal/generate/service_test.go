@@ -189,6 +189,24 @@ func TestGenerateSurvivesAFailingStore(t *testing.T) {
 	}
 }
 
+func TestGenerateDefaultsTheSeamsAndRecordsTheChargeKind(t *testing.T) {
+	svc := &Service{
+		Profiles:  fakeProfiles{},
+		Generator: &fakeGenerator{body: exampleBody(t)},
+		Log:       slog.New(slog.NewTextHandler(io.Discard, nil)),
+	}
+	res, err := svc.Generate(context.Background(), "u", Request{})
+	if err != nil {
+		t.Fatalf("a Service with only Profiles and Generator set must work: %v", err)
+	}
+	if res.Usage.Kind != ChargeKindGeneration {
+		t.Fatalf("usage kind %q", res.Usage.Kind)
+	}
+	if res.ChainID != "" {
+		t.Fatal("the default store must store nothing")
+	}
+}
+
 type failingStore struct{}
 
 func (failingStore) StoreFirstDraft(context.Context, string, *recipe.Draft, profile.EffectiveSet, string) (string, error) {

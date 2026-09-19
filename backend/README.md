@@ -13,7 +13,7 @@ internal/profile      Profile, caps, Overrides, effective set, Firestore loader
 internal/prompt       prompt v1: system text, catalogue sentences, blocks
 internal/gemini       Generator on Vertex AI; hand-written response schema
 internal/recipe       Draft types, embedded contract, structural validator
-scripts/              provision-dev.sh (GCP), e2e-generate.sh (deployed check)
+scripts/              provision-gcp.sh (GCP), e2e-generate.sh (deployed check)
 ```
 
 Two files are byte-identical copies of the shared contract and are embedded into the binary: `internal/recipe/recipe.schema.json` (of `schema/recipe.schema.json`) and `internal/prompt/catalogue.json` (of `schema/constraint-catalogue.json`). A test fails when either drifts; fix it by copying the repo file over the embedded one.
@@ -74,7 +74,7 @@ The Vertex test calls the real model with ADC and is skipped otherwise. The usua
 
 `.github/workflows/backend.yml` runs vet, fmt and tests on every push and pull request that touches `backend/`, and deploys to Cloud Run on pushes to `main` and on `workflow_dispatch`. It authenticates with Workload Identity Federation (no keys, #14) and deploys from source with the Dockerfile, so the image is the one the tests ran against. The service runs as `recipe-api-runtime`, is publicly invokable and verifies Firebase ID tokens itself, since Cloud Run IAM would reject them.
 
-One-time provisioning of a project (pool, provider, service accounts, roles) is `scripts/provision-dev.sh`; it prints the values to set as variables on the GitHub environment (`dev` today, `prod` with #24). Manual deploy for a hotfix:
+One-time provisioning of a project (pool, provider, service accounts, roles) is `scripts/provision-gcp.sh`; it prints the values to set as variables on the GitHub environment (`dev` today, `prod` with #24). Manual deploy for a hotfix:
 
 ```sh
 gcloud run deploy recipe-api --source backend --region me-west1 --project recipe-app-508817 \

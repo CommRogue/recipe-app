@@ -5,8 +5,8 @@
 # service accounts and their roles. Idempotent: rerun after changes. Run as a
 # project Owner with gcloud logged in.
 #
-#   backend/scripts/provision-dev.sh                 # dev project
-#   PROJECT=<prod-id> backend/scripts/provision-dev.sh   # prod (#24)
+#   backend/scripts/provision-gcp.sh                 # dev project
+#   PROJECT=<prod-id> backend/scripts/provision-gcp.sh   # prod (#24)
 #
 # Prints the two values the GitHub Actions workflow needs as variables.
 

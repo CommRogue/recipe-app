@@ -10,6 +10,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/CommRogue/recipe-app/backend/internal/auth"
@@ -58,7 +59,7 @@ type generateResponse struct {
 func (d Deps) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UIDFromContext(r.Context())
 	var req generate.Request
-	if err := decodeJSON(r, &req); err != nil {
+	if err := decodeJSON(w, r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid_argument", err.Error())
 		return
 	}
@@ -112,11 +113,11 @@ func publicMessage(err error, status int) string {
 	}
 }
 
-func decodeJSON(r *http.Request, v any) error {
-	if ct := r.Header.Get("Content-Type"); ct != "" && ct != "application/json" && !hasJSONPrefix(ct) {
+func decodeJSON(w http.ResponseWriter, r *http.Request, v any) error {
+	if ct := r.Header.Get("Content-Type"); ct != "" && !hasJSONPrefix(ct) {
 		return errors.New("Content-Type must be application/json")
 	}
-	body, err := io.ReadAll(http.MaxBytesReader(nil, r.Body, MaxRequestBody))
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, MaxRequestBody))
 	if err != nil {
 		return errors.New("request body is too large or unreadable")
 	}
@@ -131,8 +132,10 @@ func decodeJSON(r *http.Request, v any) error {
 	return nil
 }
 
+// hasJSONPrefix accepts "application/json" with or without parameters such
+// as "; charset=utf-8".
 func hasJSONPrefix(ct string) bool {
-	return len(ct) >= len("application/json") && ct[:len("application/json")] == "application/json"
+	return strings.HasPrefix(ct, "application/json")
 }
 
 type errorBody struct {
