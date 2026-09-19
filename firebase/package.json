@@ -1,0 +1,16 @@
+{
+  "name": "panwise-firebase",
+  "private": true,
+  "description": "Firestore and Storage rules for Panwise, with their emulator tests.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:emulator": "firebase emulators:exec --only firestore --project recipe-app-508817 'npm test'",
+    "deploy:dev": "firebase deploy --only firestore --project recipe-app-508817"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.30.2"
+  }
+}

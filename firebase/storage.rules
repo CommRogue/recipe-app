@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Cover photos (H13, docs/firestore-data-model.md): one object per Recipe
+// under the owner's prefix, an image under 2 MB. The Recipe stores this path,
+// never a download URL.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/recipes/{recipeId}/cover.jpg {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid)
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 2 * 1024 * 1024;
+    }
+  }
+}
