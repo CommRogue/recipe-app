@@ -1,0 +1,7 @@
+// prod flavor. The prod Firebase project does not exist yet (#24); fill the
+// Google client ids from its GoogleService-Info.plist when it does.
+PRODUCT_BUNDLE_IDENTIFIER = app.panwise
+APP_DISPLAY_NAME = Panwise
+GOOGLE_CLIENT_ID =
+GOOGLE_REVERSED_CLIENT_ID =
+GOOGLE_SERVER_CLIENT_ID =

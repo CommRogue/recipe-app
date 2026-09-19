@@ -1,0 +1,7 @@
+// dev flavor: the recipe-app-508817 Firebase project (#15).
+// Values come from ios/Runner/Firebase/Dev/GoogleService-Info.plist.
+PRODUCT_BUNDLE_IDENTIFIER = app.panwise.dev
+APP_DISPLAY_NAME = Panwise Dev
+GOOGLE_CLIENT_ID = 674819344439-fntsj8uk9s6qgm3hk171vhrt9g0ho4j7.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.674819344439-fntsj8uk9s6qgm3hk171vhrt9g0ho4j7
+GOOGLE_SERVER_CLIENT_ID = 674819344439-1n73ut10evmmo7o39f0bdt8tdurtfh0n.apps.googleusercontent.com

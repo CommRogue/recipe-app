@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # The Recipe contract is camelCase and its enums are lower-case
+          # words; explicit casts surface a Go-side change as a parse error.
+          field_rename: none
+          explicit_to_json: true

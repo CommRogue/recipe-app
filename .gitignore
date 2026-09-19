@@ -1,6 +1,8 @@
 # Miscellaneous
 *.class
 *.lock
+# Apps commit their lockfile; the global *.lock rule above is for build caches.
+!app/pubspec.lock
 *.log
 *.pyc
 *.swp

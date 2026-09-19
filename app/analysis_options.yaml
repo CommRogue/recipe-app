@@ -1,0 +1,25 @@
+# flutter_lints is the Flutter team's recommended set; riverpod_lint adds the
+# framework-specific checks through custom_lint, run with
+# `dart run custom_lint` (the legacy analyzer `plugins:` entry is deprecated,
+# so it is not registered here).
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    invalid_annotation_target: ignore # freezed + json_serializable
+
+linter:
+  rules:
+    always_declare_return_types: true
+    avoid_print: true
+    directives_ordering: true
+    prefer_final_locals: true
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    unawaited_futures: true

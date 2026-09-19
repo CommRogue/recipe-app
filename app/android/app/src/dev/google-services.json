@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "674819344439",
+    "project_id": "recipe-app-508817",
+    "storage_bucket": "recipe-app-508817.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674819344439:android:92853830f06585d0ae17b2",
+        "android_client_info": {
+          "package_name": "app.panwise.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674819344439-couk1p6ph1hcp6h9b6jdmttrkbarrkb8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.panwise.dev",
+            "certificate_hash": "1ad8b0fdc62d80f2d2ef46ae1806c25f2739449d"
+          }
+        },
+        {
+          "client_id": "674819344439-1n73ut10evmmo7o39f0bdt8tdurtfh0n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbBTexrg83mKYEtntVCdYVCluFMFW0pIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674819344439-1n73ut10evmmo7o39f0bdt8tdurtfh0n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "674819344439-fntsj8uk9s6qgm3hk171vhrt9g0ho4j7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.panwise.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
