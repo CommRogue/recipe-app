@@ -24,8 +24,13 @@ void main() {
   test('still sorts correctly across a base-36 digit rollover', () {
     // 36^8 ms is the first instant needing 9 digits; before it the prefix is
     // zero-padded, so the order must hold across that boundary.
-    final boundary = DateTime.fromMillisecondsSinceEpoch(pow(36, 8).toInt(), isUtc: true);
-    final before = mintEntryId(now: boundary.subtract(const Duration(milliseconds: 1)));
+    final boundary = DateTime.fromMillisecondsSinceEpoch(
+      pow(36, 8).toInt(),
+      isUtc: true,
+    );
+    final before = mintEntryId(
+      now: boundary.subtract(const Duration(milliseconds: 1)),
+    );
     final after = mintEntryId(now: boundary);
     expect(before.compareTo(after), lessThan(0));
   });
@@ -34,6 +39,9 @@ void main() {
     final a = mintEntryId(now: t0, random: Random(1));
     final b = mintEntryId(now: t0, random: Random(2));
     expect(a, isNot(b));
-    expect(a.substring(0, entryIdLength - 4), b.substring(0, entryIdLength - 4));
+    expect(
+      a.substring(0, entryIdLength - 4),
+      b.substring(0, entryIdLength - 4),
+    );
   });
 }

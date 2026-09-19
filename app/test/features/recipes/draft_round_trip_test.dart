@@ -26,13 +26,14 @@ Object? normalise(Object? actual, Object? expected) {
   return actual;
 }
 
-bool _isDefault(Object? v) => v == null || v == false || (v is List && v.isEmpty);
+bool _isDefault(Object? v) =>
+    v == null || v == false || (v is List && v.isEmpty);
 
 void main() {
   // The example is the schema's own; flutter test runs from app/.
-  final exampleJson =
-      jsonDecode(File('../schema/examples/draft.json').readAsStringSync())
-          as Map<String, Object?>;
+  final exampleJson = jsonDecode(
+    File('../schema/examples/draft.json').readAsStringSync(),
+  ) as Map<String, Object?>;
 
   group('Draft', () {
     test('parses schema/examples/draft.json', () {
@@ -77,15 +78,15 @@ void main() {
 
   group('enum fallbacks (H19)', () {
     test('an unknown unit becomes Unit.unknown', () {
-      final json = {
-        ...exampleJson['ingredients']!.asList.first,
-        'unit': 'cup',
-      };
+      final json = {...exampleJson['ingredients']!.asList.first, 'unit': 'cup'};
       expect(Ingredient.fromJson(json).unit, Unit.unknown);
     });
 
     test('an unknown meal type is dropped', () {
-      final json = {...exampleJson, 'mealTypes': ['lunch', 'brunch']};
+      final json = {
+        ...exampleJson,
+        'mealTypes': ['lunch', 'brunch'],
+      };
       expect(Draft.fromJson(json).mealTypes, [MealType.lunch]);
     });
 
@@ -95,7 +96,11 @@ void main() {
     });
 
     test('an unknown cover kind falls back to the emoji', () {
-      final cover = Cover.fromJson({'kind': 'generated', 'emoji': '🥘', 'imageId': 'x'});
+      final cover = Cover.fromJson({
+        'kind': 'generated',
+        'emoji': '🥘',
+        'imageId': 'x',
+      });
       expect(cover, const Cover.emoji(emoji: '🥘'));
     });
 
@@ -105,7 +110,13 @@ void main() {
         'emoji': '🥘',
         'photoPath': 'users/u/recipes/r/cover.jpg',
       });
-      expect(cover, const Cover.photo(emoji: '🥘', photoPath: 'users/u/recipes/r/cover.jpg'));
+      expect(
+        cover,
+        const Cover.photo(
+          emoji: '🥘',
+          photoPath: 'users/u/recipes/r/cover.jpg',
+        ),
+      );
       expect(cover.toJson()['kind'], 'photo');
     });
 
@@ -125,23 +136,32 @@ void main() {
       expect(recipe.savedAt, savedAt);
       expect(recipe.updatedAt, savedAt);
       expect(recipe.private, isNull);
-      expect(Draft.fromJson(recipe.toJson()), draft, reason: 'the body is unchanged');
+      expect(
+        Draft.fromJson(recipe.toJson()),
+        draft,
+        reason: 'the body is unchanged',
+      );
     });
 
     test('reads a stored document with Timestamps and a private map', () {
       final draft = Draft.fromJson(exampleJson);
-      final recipe = Recipe.fromDraft(
-        draft,
-        ownerUid: 'u1',
-        savedAt: DateTime.utc(2026, 9, 19, 10),
-      ).copyWith(
-        private: RecipePrivate(
-          rating: Rating(stars: 4, ratedAt: DateTime.utc(2026, 9, 20), recipeRevision: 1),
-          collectionIds: const ['c1'],
-          cookCount: 1,
-          lastCookedAt: DateTime.utc(2026, 9, 20),
-        ),
-      );
+      final recipe =
+          Recipe.fromDraft(
+            draft,
+            ownerUid: 'u1',
+            savedAt: DateTime.utc(2026, 9, 19, 10),
+          ).copyWith(
+            private: RecipePrivate(
+              rating: Rating(
+                stars: 4,
+                ratedAt: DateTime.utc(2026, 9, 20),
+                recipeRevision: 1,
+              ),
+              collectionIds: const ['c1'],
+              cookCount: 1,
+              lastCookedAt: DateTime.utc(2026, 9, 20),
+            ),
+          );
       final wire = recipe.toJson();
       expect(wire['savedAt'], '2026-09-19T10:00:00Z');
 
@@ -149,14 +169,22 @@ void main() {
       final stored = FirestoreDates.encode(wire, Recipe.firestoreDatePaths);
       expect(stored['savedAt'], isA<Timestamp>());
       expect((stored['private'] as Map)['lastCookedAt'], isA<Timestamp>());
-      expect(((stored['private'] as Map)['rating'] as Map)['ratedAt'], isA<Timestamp>());
+      expect(
+        ((stored['private'] as Map)['rating'] as Map)['ratedAt'],
+        isA<Timestamp>(),
+      );
 
-      expect(Recipe.fromJson(stored), recipe, reason: 'reads Timestamps directly');
+      expect(
+        Recipe.fromJson(stored),
+        recipe,
+        reason: 'reads Timestamps directly',
+      );
       expect(Recipe.fromJson(wire), recipe, reason: 'reads strings directly');
     });
   });
 }
 
 extension on Object {
-  List<Map<String, Object?>> get asList => (this as List).cast<Map<String, Object?>>();
+  List<Map<String, Object?>> get asList =>
+      (this as List).cast<Map<String, Object?>>();
 }

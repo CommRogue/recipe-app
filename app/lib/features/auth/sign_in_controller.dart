@@ -14,8 +14,7 @@ class SignInController extends _$SignInController {
   @override
   Future<void> build() async {}
 
-  Future<void> signInWithGoogle() =>
-      _run((auth) => auth.signInWithGoogle());
+  Future<void> signInWithGoogle() => _run((auth) => auth.signInWithGoogle());
 
   Future<void> signInWithApple() => _run((auth) => auth.signInWithApple());
 

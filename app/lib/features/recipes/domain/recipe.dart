@@ -11,10 +11,28 @@ part 'recipe.g.dart';
 //
 // Readers ignore unknown fields (json_serializable's default) and map unknown
 // enum values to the fallback the schema names for each enum (H19).
+//
+// Draft and Recipe spell out the same body fields twice on purpose: the schema
+// defines them as two objects (Recipe = Draft + ownership), freezed has no
+// inheritance, and the duplication keeps each class a faithful, greppable
+// mirror of its schema definition. Recipe.fromDraft is the one place that
+// copies one into the other.
 
 /// Closed, metric-canonical unit set. `unknown` is the fallback for a value a
 /// newer schema added: show the quantity with no unit and do not convert.
-enum Unit { g, ml, tsp, tbsp, piece, clove, slice, sprig, bunch, pinch, unknown }
+enum Unit {
+  g,
+  ml,
+  tsp,
+  tbsp,
+  piece,
+  clove,
+  slice,
+  sprig,
+  bunch,
+  pinch,
+  unknown,
+}
 
 /// When a Recipe is eaten. An unknown value is dropped (see [MealTypesConverter]).
 enum MealType { breakfast, lunch, dinner, snack, dessert, drink }
@@ -125,10 +143,8 @@ sealed class Cover with _$Cover {
 
 @freezed
 abstract class DerivedFrom with _$DerivedFrom {
-  const factory DerivedFrom({
-    required String recipeId,
-    required int revision,
-  }) = _DerivedFrom;
+  const factory DerivedFrom({required String recipeId, required int revision}) =
+      _DerivedFrom;
 
   factory DerivedFrom.fromJson(Map<String, Object?> json) =>
       _$DerivedFromFromJson(json);

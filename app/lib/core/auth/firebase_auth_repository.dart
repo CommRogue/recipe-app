@@ -83,17 +83,20 @@ class FirebaseAuthRepository implements AuthRepository {
       rethrow;
     }
     final credential = await _auth.signInWithCredential(
-      OAuthProvider('apple.com').credential(
-        idToken: apple.identityToken,
-        rawNonce: rawNonce,
-      ),
+      OAuthProvider('apple.com')
+          .credential(idToken: apple.identityToken, rawNonce: rawNonce),
     );
     return _toAuthUser(credential.user)!;
   }
 
   @override
   Future<void> signOut() async {
-    await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
+    await _auth.signOut();
+    // Only touch google_sign_in if this process ever initialised it; an
+    // Apple-only session has not, and the plugin requires initialize() first.
+    if (_googleInitialised != null) {
+      await _googleSignIn.signOut();
+    }
   }
 
   static AuthUser? _toAuthUser(User? user) => user == null

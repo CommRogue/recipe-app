@@ -11,7 +11,10 @@ void main() {
     });
 
     test('formats without a fraction when it is zero', () {
-      expect(Rfc3339.format(DateTime.utc(2026, 9, 18, 9, 30)), '2026-09-18T09:30:00Z');
+      expect(
+        Rfc3339.format(DateTime.utc(2026, 9, 18, 9, 30)),
+        '2026-09-18T09:30:00Z',
+      );
     });
 
     test('keeps a non-zero fraction', () {
@@ -57,16 +60,28 @@ void main() {
         'lastCookedAt': null,
       },
     };
-    const paths = ['createdAt', 'private.rating.ratedAt', 'private.lastCookedAt', 'savedAt'];
+    const paths = [
+      'createdAt',
+      'private.rating.ratedAt',
+      'private.lastCookedAt',
+      'savedAt',
+    ];
 
     test('encode turns strings at the given paths into Timestamps', () {
       final out = FirestoreDates.encode(json, paths);
-      expect(out['createdAt'], Timestamp.fromDate(DateTime.utc(2026, 9, 18, 9, 30)));
+      expect(
+        out['createdAt'],
+        Timestamp.fromDate(DateTime.utc(2026, 9, 18, 9, 30)),
+      );
       final rating = (out['private'] as Map)['rating'] as Map;
       expect(rating['ratedAt'], isA<Timestamp>());
       expect(rating['stars'], 5);
       expect((out['private'] as Map)['lastCookedAt'], isNull);
-      expect(out.containsKey('savedAt'), isFalse, reason: 'missing paths are skipped');
+      expect(
+        out.containsKey('savedAt'),
+        isFalse,
+        reason: 'missing paths are skipped',
+      );
       expect(out['title'], 'x');
     });
 
@@ -76,7 +91,10 @@ void main() {
     });
 
     test('decode is the inverse of encode', () {
-      expect(FirestoreDates.decode(FirestoreDates.encode(json, paths), paths), json);
+      expect(
+        FirestoreDates.decode(FirestoreDates.encode(json, paths), paths),
+        json,
+      );
     });
   });
 }

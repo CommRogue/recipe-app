@@ -29,7 +29,10 @@ void main() {
 
     expect(auth.currentUser, FakeAuthRepository.defaultUser);
     expect(users.ensuredUids, ['fake-uid']);
-    expect(container.read(signInControllerProvider), const AsyncData<void>(null));
+    expect(
+      container.read(signInControllerProvider),
+      const AsyncData<void>(null),
+    );
   });
 
   test('apple sign-in goes through the same path', () async {

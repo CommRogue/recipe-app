@@ -30,14 +30,18 @@ Widget app({
     flavorConfigProvider.overrideWith((ref) => _testConfig),
     authRepositoryProvider.overrideWith((ref) => auth),
     userRepositoryProvider.overrideWith((ref) => users),
-    platformInfoProvider.overrideWith((ref) => FakePlatformInfo(supportsAppleSignIn: apple)),
+    platformInfoProvider.overrideWith(
+      (ref) => FakePlatformInfo(supportsAppleSignIn: apple),
+    ),
   ],
   child: const PanwiseApp(),
 );
 
 void main() {
   testWidgets('a signed-out start lands on the sign-in screen', (tester) async {
-    await tester.pumpWidget(app(auth: FakeAuthRepository(), users: FakeUserRepository()));
+    await tester.pumpWidget(
+      app(auth: FakeAuthRepository(), users: FakeUserRepository()),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(SignInScreen), findsOneWidget);
@@ -45,14 +49,20 @@ void main() {
     expect(find.byKey(SignInScreen.appleButtonKey), findsNothing);
   });
 
-  testWidgets('the Apple button appears only where the platform supports it', (tester) async {
-    await tester.pumpWidget(app(auth: FakeAuthRepository(), users: FakeUserRepository(), apple: true));
+  testWidgets('the Apple button appears only where the platform supports it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      app(auth: FakeAuthRepository(), users: FakeUserRepository(), apple: true),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(SignInScreen.appleButtonKey), findsOneWidget);
   });
 
-  testWidgets('signing in creates the user document and shows home', (tester) async {
+  testWidgets('signing in creates the user document and shows home', (
+    tester,
+  ) async {
     final auth = FakeAuthRepository();
     final users = FakeUserRepository();
     await tester.pumpWidget(app(auth: auth, users: users));
@@ -66,16 +76,21 @@ void main() {
     expect(users.ensuredUids, ['fake-uid']);
   });
 
-  testWidgets('a signed-in start goes straight home, and signing out returns to sign-in', (tester) async {
-    final auth = FakeAuthRepository(signedInAs: FakeAuthRepository.defaultUser);
-    await tester.pumpWidget(app(auth: auth, users: FakeUserRepository()));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'a signed-in start goes straight home, and signing out returns to sign-in',
+    (tester) async {
+      final auth = FakeAuthRepository(
+        signedInAs: FakeAuthRepository.defaultUser,
+      );
+      await tester.pumpWidget(app(auth: auth, users: FakeUserRepository()));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
 
-    await tester.tap(find.byKey(HomeScreen.signOutButtonKey));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(HomeScreen.signOutButtonKey));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(SignInScreen), findsOneWidget);
-  });
+      expect(find.byType(SignInScreen), findsOneWidget);
+    },
+  );
 }

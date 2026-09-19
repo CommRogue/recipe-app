@@ -19,10 +19,7 @@ void main() {
     });
 
     test('moves a signed-in user off the sign-in screen to home', () {
-      expect(
-        redirectFor(signedIn: true, location: Routes.signIn),
-        Routes.home,
-      );
+      expect(redirectFor(signedIn: true, location: Routes.signIn), Routes.home);
     });
 
     test('lets a signed-in user through everywhere else', () {

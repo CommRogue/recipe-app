@@ -15,7 +15,6 @@ class SignInScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(signInControllerProvider);
-    final controller = ref.read(signInControllerProvider.notifier);
     final showApple = ref.watch(platformInfoProvider).supportsAppleSignIn;
     final busy = state.isLoading;
 
@@ -35,14 +34,22 @@ class SignInScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               FilledButton(
                 key: googleButtonKey,
-                onPressed: busy ? null : controller.signInWithGoogle,
+                onPressed: busy
+                    ? null
+                    : () => ref
+                          .read(signInControllerProvider.notifier)
+                          .signInWithGoogle(),
                 child: const Text('Continue with Google'),
               ),
               if (showApple) ...[
                 const SizedBox(height: 12),
                 FilledButton.tonal(
                   key: appleButtonKey,
-                  onPressed: busy ? null : controller.signInWithApple,
+                  onPressed: busy
+                      ? null
+                      : () => ref
+                            .read(signInControllerProvider.notifier)
+                            .signInWithApple(),
                   child: const Text('Continue with Apple'),
                 ),
               ],

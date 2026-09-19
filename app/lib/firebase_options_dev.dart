@@ -11,7 +11,9 @@ import 'package:flutter/foundation.dart';
 abstract final class DevFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError('Web is not a v1 platform (docs/later-versions.md).');
+      throw UnsupportedError(
+        'Web is not a v1 platform (docs/later-versions.md).',
+      );
     }
     return switch (defaultTargetPlatform) {
       TargetPlatform.android => android,
@@ -36,10 +38,8 @@ abstract final class DevFirebaseOptions {
     messagingSenderId: '674819344439',
     projectId: 'recipe-app-508817',
     storageBucket: 'recipe-app-508817.firebasestorage.app',
-    androidClientId:
-        '674819344439-couk1p6ph1hcp6h9b6jdmttrkbarrkb8.apps.googleusercontent.com',
-    iosClientId:
-        '674819344439-fntsj8uk9s6qgm3hk171vhrt9g0ho4j7.apps.googleusercontent.com',
+    androidClientId: '674819344439-couk1p6ph1hcp6h9b6jdmttrkbarrkb8.apps.googleusercontent.com',
+    iosClientId: '674819344439-fntsj8uk9s6qgm3hk171vhrt9g0ho4j7.apps.googleusercontent.com',
     iosBundleId: 'app.panwise.dev',
   );
 

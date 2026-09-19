@@ -11,17 +11,29 @@ void main() {
     repo = FirestoreUserRepository(db);
   });
 
-  test('creates users/{uid} with the data-model fields on first sign-in', () async {
-    await repo.ensureUserDocument('u1');
+  test(
+    'creates users/{uid} with the data-model fields on first sign-in',
+    () async {
+      await repo.ensureUserDocument('u1');
 
-    final data = (await db.doc('users/u1').get()).data()!;
-    expect(data.keys, unorderedEquals(['createdAt', 'unitSystem', 'consent', 'recipeCount', 'countedRecipeId']));
-    expect(data['createdAt'], isNotNull, reason: 'server timestamp resolved');
-    expect(data['unitSystem'], isNull);
-    expect(data['consent'], isNull);
-    expect(data['recipeCount'], 0);
-    expect(data['countedRecipeId'], isNull);
-  });
+      final data = (await db.doc('users/u1').get()).data()!;
+      expect(
+        data.keys,
+        unorderedEquals([
+          'createdAt',
+          'unitSystem',
+          'consent',
+          'recipeCount',
+          'countedRecipeId',
+        ]),
+      );
+      expect(data['createdAt'], isNotNull, reason: 'server timestamp resolved');
+      expect(data['unitSystem'], isNull);
+      expect(data['consent'], isNull);
+      expect(data['recipeCount'], 0);
+      expect(data['countedRecipeId'], isNull);
+    },
+  );
 
   test('leaves an existing document untouched', () async {
     await db.doc('users/u1').set({

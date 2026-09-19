@@ -26,8 +26,8 @@ class SignInCancelled implements Exception {
   const SignInCancelled();
 }
 
-/// Sign-in and session state, behind an interface so features and tests never
-/// touch Firebase Auth directly.
+/// Sign-in and the signed-in user, behind an interface so features and tests
+/// never touch Firebase Auth directly.
 abstract interface class AuthRepository {
   /// Emits the current user on listen, then on every change. Null when
   /// signed out.
