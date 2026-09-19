@@ -1,0 +1,27 @@
+{
+  "$comment": "The closed set of Listed Constraints (ADR 0005). Shared by the Flutter app (labels, pickers) and the Go service (one canonical prompt sentence per id; no ingredient checks, ADR 0006). Ids are permanent: never rename or reuse one. Adding an id is backwards compatible; a reader that meets an unknown id keeps it on write and shows it by id (H19).",
+  "catalogueVersion": 1,
+  "diets": [
+    { "id": "diet.vegan", "label": "Vegan" },
+    { "id": "diet.vegetarian", "label": "Vegetarian" },
+    { "id": "diet.pescatarian", "label": "Pescatarian" },
+    { "id": "diet.kosher", "label": "Kosher" },
+    { "id": "diet.halal", "label": "Halal" }
+  ],
+  "allergens": [
+    { "id": "allergen.gluten", "label": "Gluten (wheat, rye, barley, oats)" },
+    { "id": "allergen.crustaceans", "label": "Crustaceans" },
+    { "id": "allergen.eggs", "label": "Eggs" },
+    { "id": "allergen.fish", "label": "Fish" },
+    { "id": "allergen.peanuts", "label": "Peanuts" },
+    { "id": "allergen.soy", "label": "Soy" },
+    { "id": "allergen.milk", "label": "Milk" },
+    { "id": "allergen.tree-nuts", "label": "Tree nuts" },
+    { "id": "allergen.celery", "label": "Celery" },
+    { "id": "allergen.mustard", "label": "Mustard" },
+    { "id": "allergen.sesame", "label": "Sesame" },
+    { "id": "allergen.sulphites", "label": "Sulphites" },
+    { "id": "allergen.lupin", "label": "Lupin" },
+    { "id": "allergen.molluscs", "label": "Molluscs" }
+  ]
+}
