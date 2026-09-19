@@ -1,0 +1,12 @@
+# Build output and local tooling
+/bin/
+/out/
+/server
+*.test
+coverage.out
+
+# Never commit credentials or tokens
+*.json.key
+service-account*.json
+.env
+.env.*
