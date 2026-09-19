@@ -67,6 +67,12 @@ func (r Request) Validate() error {
 	if len(r.Overrides.AddListed) > profile.CapListed {
 		return invalid("overrides.addListed has more than %d entries", profile.CapListed)
 	}
+	// An unknown id here is a 400, while the same id stored in the Profile is
+	// kept and skipped (H19, docs/firestore-data-model.md). The asymmetry is
+	// deliberate: a One-off Constraint is often a guest's allergy, and
+	// dropping it silently is the failure ADR 0005 designed Overrides to
+	// avoid, whereas refusing every generation over one stale Profile entry
+	// would be worse than skipping it.
 	for _, id := range r.Overrides.AddListed {
 		if !prompt.IsCatalogueID(id) {
 			return invalid("overrides.addListed contains %q, which is not a catalogue id", id)

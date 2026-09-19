@@ -39,16 +39,16 @@ const ChargeKindGeneration ChargeKind = "generation"
 // Usage is what a model call cost, for logs and, later, Quota charges by
 // kind (H15).
 type Usage struct {
-	Kind             ChargeKind
-	Model            string
-	PromptTokens     int
-	CandidateTokens  int
-	ThoughtTokens    int
-	TotalTokens      int
-	ModelLatency     time.Duration
-	PromptVersion    string
-	FinishReason     string
-	ResponseTruncate bool
+	Kind              ChargeKind
+	Model             string
+	PromptTokens      int
+	CandidateTokens   int
+	ThoughtTokens     int
+	TotalTokens       int
+	ModelLatency      time.Duration
+	PromptVersion     string
+	FinishReason      string
+	ResponseTruncated bool
 }
 
 // DraftStore is the persistence seam for Draft Chains (ADR 0007). The
@@ -162,7 +162,8 @@ func (s *Service) Generate(ctx context.Context, uid string, req Request) (*Resul
 	log.InfoContext(ctx, "draft delivered",
 		"draftId", draft.ID, "chainId", chainID, "promptVersion", pr.Version, "model", usage.Model, "kind", usage.Kind,
 		"promptTokens", usage.PromptTokens, "candidateTokens", usage.CandidateTokens, "thoughtTokens", usage.ThoughtTokens,
-		"modelLatencyMs", usage.ModelLatency.Milliseconds())
+		"modelLatencyMs", usage.ModelLatency.Milliseconds(), "finishReason", usage.FinishReason,
+		"responseTruncated", usage.ResponseTruncated)
 
 	return &Result{Draft: draft, ChainID: chainID, Usage: usage, Prompt: pr}, nil
 }

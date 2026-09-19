@@ -89,6 +89,21 @@ describe("ownership of everything under users/{uid}", () => {
     const { other } = clients(env);
     await assertFails(setDoc(doc(other, `users/${OWNER}/recipes/r2`), { title: "planted" }));
     await assertFails(setDoc(doc(other, `users/${OWNER}/collections/c2`), { name: "planted" }));
+    await assertFails(setDoc(doc(other, `users/${OWNER}/profile/default`), { listed: [] }));
+    await assertFails(
+      setDoc(doc(other, `users/${OWNER}/cookingSessions/s2`), {
+        entries: [{ recipeId: "r1", recipeRevision: 1, currentStep: 0 }],
+        currentEntry: 0,
+        startedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        completedAt: null,
+      }),
+    );
+    await assertFails(setDoc(doc(other, `users/${OWNER}/server/plan`), { plan: "paid" }));
+    await assertFails(setDoc(doc(other, `users/${OWNER}/draftChains/c2`), { refinementCount: 0 }));
+    await assertFails(
+      setDoc(doc(other, `users/${OWNER}/draftChains/c1/drafts/d2`), { draft: {} }),
+    );
   });
 
   it("owner can write their own client-owned documents", async () => {

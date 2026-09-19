@@ -1,7 +1,6 @@
-# flutter_lints is the Flutter team's recommended set; riverpod_lint adds the
-# framework-specific checks through custom_lint, run with
-# `dart run custom_lint` (the legacy analyzer `plugins:` entry is deprecated,
-# so it is not registered here).
+# flutter_lints is the Flutter team's recommended set. riverpod_lint is not
+# used: its custom_lint dependency pinned an analyzer that could not compile
+# the freezed output on Dart 3.13 (see the #17 resolution).
 include: package:flutter_lints/flutter.yaml
 
 analyzer:

@@ -100,7 +100,7 @@ Map<String, dynamic> _$EmojiCoverToJson(EmojiCover instance) =>
 
 PhotoCover _$PhotoCoverFromJson(Map<String, dynamic> json) => PhotoCover(
   emoji: json['emoji'] as String,
-  photoPath: json['photoPath'] as String,
+  photoPath: json['photoPath'] as String?,
   $type: json['kind'] as String?,
 );
 

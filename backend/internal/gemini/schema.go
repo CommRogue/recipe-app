@@ -56,7 +56,7 @@ func BodySchema() *genai.Schema {
 				Items: &genai.Schema{
 					Type: genai.TypeObject,
 					Properties: map[string]*genai.Schema{
-						"text":          {Type: genai.TypeString, Description: "The instruction, without quantities or temperatures."},
+						"text":          {Type: genai.TypeString, Description: "One Step of the recipe, in order, without quantities or temperatures."},
 						"ingredientIds": {Type: genai.TypeArray, Items: &genai.Schema{Type: genai.TypeString}, Description: "Ids of the ingredients first used in this step."},
 						"timerSeconds":  {Type: genai.TypeInteger, Nullable: nullable, Description: "Only for a real wait; null otherwise."},
 						"temperatureC":  {Type: genai.TypeNumber, Nullable: nullable, Description: "Oven, oil or pan temperature in Celsius; null when none."},

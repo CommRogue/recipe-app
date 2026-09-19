@@ -132,10 +132,11 @@ sealed class Cover with _$Cover {
   const factory Cover.emoji({required String emoji}) = EmojiCover;
 
   /// [photoPath] is a Cloud Storage path under the owner's prefix, never a
-  /// download URL.
+  /// download URL. The schema allows null, so a photo Cover whose path is
+  /// missing still parses and the viewer shows the emoji (H19).
   const factory Cover.photo({
     required String emoji,
-    required String photoPath,
+    required String? photoPath,
   }) = PhotoCover;
 
   factory Cover.fromJson(Map<String, Object?> json) => _$CoverFromJson(json);

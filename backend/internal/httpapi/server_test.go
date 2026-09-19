@@ -83,7 +83,7 @@ func post(h http.Handler, token, body string) *httptest.ResponseRecorder {
 	return rec
 }
 
-func TestHealthzIsOpen(t *testing.T) {
+func TestHealthIsOpen(t *testing.T) {
 	h := newHandler(t, fakeGenerator{})
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/health", nil))

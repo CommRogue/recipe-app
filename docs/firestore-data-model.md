@@ -195,9 +195,9 @@ Rules and tests live in `firebase/` (`firestore.rules`, `storage.rules`, `firest
 
 ## Handed on
 
-- **#18**: the service writes `server/plan`, `server/quota`, `draftChains/**`, `reports`, `revenuecatEvents` with the Admin SDK; treats a missing Plan document as Free; enforces the exact Profile caps on load; checks `consent` before generating; sets `expireAt` on every chain and Draft write.
-- **#17**: a `firebase/` directory; Dart converters between Firestore Timestamps and the schema's date-time strings; repositories use batches and `FieldValue.increment`, never transactions; the user document is created on first sign-in.
+- **#18** (scaffold, done): the service loads the Profile with the Admin SDK and enforces the exact caps on load. Left as named seams in `backend/internal/generate/` for the implementation issues from #25: writing `server/plan`, `server/quota`, `draftChains/**` (with `expireAt` on every chain and Draft write), `reports` and `revenuecatEvents`; treating a missing Plan document as Free; refusing a Generation Request while `consent` is null or stale (the consent screen does not exist yet).
+- **#17** (scaffold, done): the `firebase/` directory with baseline ownership rules and the Ownership and Backend-only test blocks; Dart converters between Firestore Timestamps and the schema's date-time strings; the user document is created on first sign-in. Still to come with the save flow: repositories that use batches and `FieldValue.increment`, never transactions, and the remaining test blocks below.
 - **#19**: recovering a Draft from its Draft Chain, the "recent Drafts" surface if #16 wants one, discard as a delete, and the rejected-save state.
 - **#20**: the Cooking Session document, the finish batch, any timer fields.
-- **#15 or #18**: TTL policies on `draftChains` and `drafts`, the composite index, deploying rules.
+- **#15** (done): TTL policies on `draftChains` and `drafts` and the composite index exist on dev; #24 recreates them on prod (`firebase/firestore.indexes.json` carries the index, the TTL policies are `gcloud` commands recorded on #15). Rules are deployed by hand for now; the CI deploy through #18's deployer needs `firebaserules.admin`, `datastore.indexAdmin` and `firebase.viewer` added, which is an implementation issue from #25.
 - **Account deletion (map, not yet specified)**: a Go endpoint that recursively deletes `users/{uid}`, the Storage prefix `users/{uid}/`, the Auth user, revokes the Apple token (#13) and decides what happens to that user's `reports`.

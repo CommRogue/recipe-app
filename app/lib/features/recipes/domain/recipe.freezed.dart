@@ -1313,7 +1313,7 @@ return photo(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String emoji)?  emoji,TResult Function( String emoji,  String photoPath)?  photo,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String emoji)?  emoji,TResult Function( String emoji,  String? photoPath)?  photo,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EmojiCover() when emoji != null:
 return emoji(_that.emoji);case PhotoCover() when photo != null:
@@ -1335,7 +1335,7 @@ return photo(_that.emoji,_that.photoPath);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String emoji)  emoji,required TResult Function( String emoji,  String photoPath)  photo,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String emoji)  emoji,required TResult Function( String emoji,  String? photoPath)  photo,}) {final _that = this;
 switch (_that) {
 case EmojiCover():
 return emoji(_that.emoji);case PhotoCover():
@@ -1353,7 +1353,7 @@ return photo(_that.emoji,_that.photoPath);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String emoji)?  emoji,TResult? Function( String emoji,  String photoPath)?  photo,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String emoji)?  emoji,TResult? Function( String emoji,  String? photoPath)?  photo,}) {final _that = this;
 switch (_that) {
 case EmojiCover() when emoji != null:
 return emoji(_that.emoji);case PhotoCover() when photo != null:
@@ -1448,7 +1448,7 @@ class PhotoCover implements Cover {
   factory PhotoCover.fromJson(Map<String, dynamic> json) => _$PhotoCoverFromJson(json);
 
 @override final  String emoji;
- final  String photoPath;
+ final  String? photoPath;
 
 @JsonKey(name: 'kind')
 final String $type;
@@ -1489,7 +1489,7 @@ abstract mixin class $PhotoCoverCopyWith<$Res> implements $CoverCopyWith<$Res> {
   factory $PhotoCoverCopyWith(PhotoCover value, $Res Function(PhotoCover) _then) = _$PhotoCoverCopyWithImpl;
 @override @useResult
 $Res call({
- String emoji, String photoPath
+ String emoji, String? photoPath
 });
 
 
@@ -1506,11 +1506,11 @@ class _$PhotoCoverCopyWithImpl<$Res>
 
 /// Create a copy of Cover
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? emoji = null,Object? photoPath = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? emoji = null,Object? photoPath = freezed,}) {
   return _then(PhotoCover(
 emoji: null == emoji ? _self.emoji : emoji // ignore: cast_nullable_to_non_nullable
-as String,photoPath: null == photoPath ? _self.photoPath : photoPath // ignore: cast_nullable_to_non_nullable
-as String,
+as String,photoPath: freezed == photoPath ? _self.photoPath : photoPath // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

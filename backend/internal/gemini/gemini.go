@@ -100,7 +100,7 @@ func (c *Client) GenerateRecipe(ctx context.Context, p prompt.Prompt) (json.RawM
 	cand := resp.Candidates[0]
 	usage.FinishReason = string(cand.FinishReason)
 	if cand.FinishReason == genai.FinishReasonMaxTokens {
-		usage.ResponseTruncate = true
+		usage.ResponseTruncated = true
 	}
 	text := strings.TrimSpace(resp.Text())
 	if text == "" {
