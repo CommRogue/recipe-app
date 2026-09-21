@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-21T00:00:00Z",
+  "title": "Panwise Index — accepted direction; native implementation pending",
+  "extensions": {
+    "shadows": [
+      { "name": "selected-library-segment", "value": "0 2px 6px #152a1510", "purpose": "Selected library segment in Index." },
+      { "name": "study-phone", "value": "0 12px 40px #172e1714", "purpose": "Desktop comparison frame only; removed on narrow screens." },
+      { "name": "study-switcher", "value": "0 6px 24px #0003", "purpose": "Fixed candidate switcher; not an app component." }
+    ],
+    "motion": [
+      { "name": "cooking-progress", "value": "width .2s ease-out", "purpose": "Step progress; disabled under prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "study-stacked-max", "value": "760px" },
+      { "name": "study-columns-min", "value": "761px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action — Index",
+      "kind": "button",
+      "refersTo": "button-primary-index",
+      "description": "Accepted Index primary treatment. Root custom properties bind to prototype tokens; fallbacks preserve Index.",
+      "html": "<button class=\"ds-primary\">Save recipe</button>",
+      "css": ".ds-primary{font:700 16px system-ui,sans-serif;min-height:48px;border:0;border-radius:12px;padding:12px 16px;background:var(--accent,#185b40);color:#fff;cursor:pointer}.ds-primary:hover{filter:brightness(.9)}.ds-primary:focus-visible{outline:3px solid var(--accent,#185b40);outline-offset:3px}.ds-primary:disabled{opacity:.55;cursor:default}"
+    },
+    {
+      "name": "Secondary action — Index",
+      "kind": "button",
+      "refersTo": "button-secondary-index",
+      "description": "Shared soft action surface, with Index fallbacks.",
+      "html": "<button class=\"ds-secondary\">Refine</button>",
+      "css": ".ds-secondary{font:650 16px system-ui,sans-serif;min-height:48px;border:0;border-radius:12px;padding:12px 16px;background:var(--soft,#e8f1eb);color:var(--accent,#185b40);cursor:pointer}.ds-secondary:hover{background:var(--soft,#e8f1eb)}.ds-secondary:focus-visible{outline:3px solid var(--accent,#185b40);outline-offset:3px}"
+    },
+    {
+      "name": "Text field",
+      "kind": "input",
+      "refersTo": "field-index",
+      "description": "Shared bordered field with visible focus and muted placeholder.",
+      "html": "<label class=\"ds-field-label\">Custom Constraint<input class=\"ds-field\" placeholder=\"For example, no seed oils\"></label>",
+      "css": ".ds-field-label{display:block;font:650 14px system-ui,sans-serif;color:#202824}.ds-field{display:block;margin-top:8px;width:100%;font:400 16px system-ui,sans-serif;padding:14px;border:1px solid var(--line,#d4ded7);border-radius:10px;background:var(--surface,#fff);color:#202824;caret-color:var(--accent,#185b40)}.ds-field::placeholder{color:var(--muted,#526158);opacity:1}.ds-field:focus-visible{outline:3px solid var(--accent,#185b40);outline-offset:3px}"
+    },
+    {
+      "name": "Library segments",
+      "kind": "nav",
+      "description": "Two library views; selected segment has the only app control shadow.",
+      "html": "<div class=\"ds-segments\" aria-label=\"Library view\"><button aria-pressed=\"true\">All recipes</button><button aria-pressed=\"false\">Collections</button></div>",
+      "css": ".ds-segments{display:flex;background:var(--soft,#e8f1eb);border-radius:12px;padding:4px;gap:4px}.ds-segments button{font:400 14px system-ui,sans-serif;color:#202824;flex:1;min-height:48px;min-width:0;border:0;border-radius:12px;padding:8px;background:none;cursor:pointer}.ds-segments button:hover{background:var(--soft,#e8f1eb)}.ds-segments [aria-pressed=true]{background:var(--surface,#fff);box-shadow:0 2px 6px #152a1510;font-weight:700}.ds-segments button:focus-visible{outline:3px solid var(--accent,#185b40);outline-offset:3px}"
+    },
+    {
+      "name": "Index Recipe row",
+      "kind": "custom",
+      "description": "Accepted Index Recipe row, extracted from the throwaway prototype; native implementation remains pending.",
+      "html": "<button class=\"ds-recipe\"><span class=\"ds-cover\" aria-hidden=\"true\">🍋</span><span class=\"ds-copy\"><strong>Lemon &amp; chickpea skillet</strong><span class=\"ds-meta\">20 min · Mediterranean · 5/5</span></span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m9 6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-recipe{display:flex;align-items:center;text-align:left;width:100%;min-height:48px;padding:18px 0;border:0;border-bottom:1px solid var(--line,#d4ded7);border-radius:0;gap:16px;background:none;color:#202824;font-family:system-ui,sans-serif;cursor:pointer}.ds-recipe:hover{background:var(--soft,#e8f1eb)}.ds-recipe:focus-visible{outline:3px solid var(--accent,#185b40);outline-offset:3px}.ds-cover{font:36px/1 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;flex-shrink:0;width:52px;text-align:center}.ds-copy{flex:1}.ds-copy strong{font-size:18px;line-height:1.3;display:block}.ds-meta{display:block;font-size:13px;color:var(--muted,#526158);margin-top:6px}.ds-recipe svg{width:22px;height:22px;fill:none;stroke:var(--muted,#526158);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}"
+    }
+  ],
+  "narrative": {
+    "overview": "Accepted direction: A — Index, chosen by the developer on 2026-09-21 (\"Take variant A\"). Saved Recipes lead the app, with separated rows, strong sans headings, green actions, and emoji Covers. Native implementation and production validation remain future work.",
+    "dos": [
+      "Do use the accepted Index direction as the reference for future native implementation.",
+      "Do treat the HTML prototype as the source for these extracted values.",
+      "Do preserve labelled navigation, readable Recipe titles, visible keyboard focus, and return-to-task state."
+    ],
+    "donts": [
+      "Don't promote this throwaway HTML or its study-harness dimensions into production Flutter code.",
+      "Don't infer a settled photo-Cover policy from this photography-free artifact; PRODUCT.md records that open question."
+    ]
+  }
+}
