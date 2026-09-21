@@ -27,12 +27,16 @@ A soft signal that steers generation without forbidding anything: a liked ingred
 _Avoid_: Taste, like/dislike, soft constraint
 
 **Override**:
-A change to the Profile that holds for one Generation Request and the Refinements of its Drafts: switching off a Constraint or Preference, or adding a One-off Constraint. It is never saved to the Profile.
+A change to the Profile that holds for one Generation Request and the Refinements of its Drafts: switching off a Constraint or Preference, adding a One-off Constraint, or adding an Additional Preference. It is never saved to the Profile.
 _Avoid_: Guest mode, temporary profile, exception
 
 **One-off Constraint**:
 A Listed or Custom Constraint added by an Override, for instance a guest's allergy.
 _Avoid_: Guest constraint, temporary constraint
+
+**Additional Preference**:
+A soft Preference added for one Generation Request and its Refinements without being saved to the Profile: a quality or ingredient steering the dish in the user's own words ("extra crispy", "kid-friendly"). The ask of a Generation Request outranks an Additional Preference.
+_Avoid_: One-off constraint, temporary constraint
 
 ### Generation
 
@@ -41,7 +45,7 @@ Everything sent to the model to produce one recipe: the Constraints and Preferen
 _Avoid_: Query, prompt (the prompt is the internal text built from a Generation Request)
 
 **Generation Limit**:
-A per-request cap on the shape of a recipe: time to make (Active Time plus Passive Time), number of ingredients, number of pieces of cookware. Part of a Generation Request, not stored on the profile.
+A per-request cap on the shape of a recipe: time to make (Active Time plus Passive Time), number of ingredients, number of pieces of cookware. Part of a Generation Request, not stored on the profile. A Draft that exceeds a Generation Limit is valid and delivered to the user with an overrun notice; it is not rejected or retried.
 _Avoid_: Constraint (reserved for hard food rules), filter, quota
 
 **Draft**:
@@ -94,7 +98,7 @@ The viewer's choice of metric or imperial, defaulted from locale. It changes how
 _Avoid_: Units setting, measurement system
 
 **Cover**:
-The visual that represents a Recipe. By default an emoji chosen by the model when the recipe was generated; the user may replace it with a photo.
+The visual that represents a Recipe. By default an emoji chosen by the model when the recipe was generated; the user may replace it with an owner-private photo. The emoji is always kept as a permanent fallback.
 _Avoid_: Image, thumbnail, icon, picture
 
 **Collection**:

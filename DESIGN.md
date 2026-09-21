@@ -111,4 +111,4 @@ The selection refinement restores library scroll on return, starts newly opened 
 - Do treat the HTML prototype as the source for these extracted values.
 - Do preserve labelled navigation, readable Recipe titles, visible keyboard focus, and return-to-task state.
 - Don't promote this throwaway HTML or its study-harness dimensions into production Flutter code.
-- Don't infer a settled photo-Cover policy from this photography-free artifact; PRODUCT.md records that open question.
+- Don't infer that photo Covers are excluded: user-supplied photo Covers for saved Recipes are in scope per issue #28, with emoji as the visual default and permanent fallback.

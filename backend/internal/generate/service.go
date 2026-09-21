@@ -216,8 +216,9 @@ func (s *Service) callModel(ctx context.Context, pr prompt.Prompt) (json.RawMess
 
 // Stage: post-process. Compose the Draft around the model's Body, then run the
 // structural validator (ADR 0004). No Constraint check (ADR 0006). Generation
-// Limits are logged when exceeded, not enforced: whether the service or the
-// app reacts to an over-limit Draft is #19's call.
+// Limits are logged when exceeded, not rejected: per issue #28 resolution,
+// over-limit Drafts are delivered as valid, charged 1 Quota, and displayed with
+// an overrun notice in the client UI; no automatic model retries are performed.
 func (s *Service) postProcess(body json.RawMessage, req Request, log *slog.Logger) (*recipe.Draft, error) {
 	var b recipe.Body
 	if err := json.Unmarshal(body, &b); err != nil {

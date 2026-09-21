@@ -110,3 +110,26 @@ func TestApplyOrdersFreeTextByEntryID(t *testing.T) {
 		t.Fatalf("entries should be in key order: %v", got.Liked)
 	}
 }
+
+func TestApplyHandlesAdditionalPreferences(t *testing.T) {
+	overrides := Overrides{
+		AddPreferences: []string{"extra crispy", "kid-friendly", strings.Repeat("a", 81), ""},
+	}
+	got := Apply(Profile{}, overrides)
+	want := []string{"extra crispy", "kid-friendly"}
+	if !reflect.DeepEqual(got.AdditionalPreferences, want) {
+		t.Fatalf("got %v, want %v", got.AdditionalPreferences, want)
+	}
+	if got.IsEmpty() {
+		t.Fatal("effective set with additional preferences should not be empty")
+	}
+
+	var many []string
+	for i := 0; i < 25; i++ {
+		many = append(many, fmt.Sprintf("pref %d", i))
+	}
+	gotCapped := Apply(Profile{}, Overrides{AddPreferences: many})
+	if len(gotCapped.AdditionalPreferences) != CapAdditionalPreferences {
+		t.Fatalf("expected %d additional preferences, got %d", CapAdditionalPreferences, len(gotCapped.AdditionalPreferences))
+	}
+}

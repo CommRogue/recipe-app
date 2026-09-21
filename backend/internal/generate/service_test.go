@@ -121,7 +121,9 @@ func TestGenerateAppliesOverridesBeforeThePrompt(t *testing.T) {
 	svc := newService(gen, fakeProfiles{p: p}, store)
 
 	_, err := svc.Generate(context.Background(), "u", Request{Overrides: Overrides{
-		Off: []string{"allergen.peanuts", "l1"}, AddCustom: []string{"no mushrooms"},
+		Off:            []string{"allergen.peanuts", "l1"},
+		AddCustom:      []string{"no mushrooms"},
+		AddPreferences: []string{"crispy"},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -132,7 +134,10 @@ func TestGenerateAppliesOverridesBeforeThePrompt(t *testing.T) {
 	if !strings.Contains(gen.gotPr.User, `"no mushrooms"`) {
 		t.Fatalf("one-off constraint missing:\n%s", gen.gotPr.User)
 	}
-	if len(store.effective.Listed) != 0 || len(store.effective.CustomConstraints) != 1 {
+	if !strings.Contains(gen.gotPr.User, `"crispy"`) {
+		t.Fatalf("additional preference missing:\n%s", gen.gotPr.User)
+	}
+	if len(store.effective.Listed) != 0 || len(store.effective.CustomConstraints) != 1 || len(store.effective.AdditionalPreferences) != 1 {
 		t.Fatalf("effective set handed to the store is wrong: %+v", store.effective)
 	}
 }
@@ -228,6 +233,10 @@ func TestRequestValidate(t *testing.T) {
 		"blank custom":         {Request{Overrides: Overrides{AddCustom: []string{"  "}}}, false},
 		"long custom":          {Request{Overrides: Overrides{AddCustom: []string{strings.Repeat("x", 81)}}}, false},
 		"too many custom":      {Request{Overrides: Overrides{AddCustom: make([]string, 21)}}, false},
+		"valid preferences":    {Request{Overrides: Overrides{AddPreferences: []string{"crispy", "kid-friendly"}}}, true},
+		"blank preferences":    {Request{Overrides: Overrides{AddPreferences: []string{"  "}}}, false},
+		"long preferences":     {Request{Overrides: Overrides{AddPreferences: []string{strings.Repeat("x", 81)}}}, false},
+		"too many preferences": {Request{Overrides: Overrides{AddPreferences: make([]string, 21)}}, false},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {

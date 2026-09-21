@@ -28,9 +28,10 @@ type Limits struct {
 
 // Overrides are the per-request deltas to the Profile (ADR 0005).
 type Overrides struct {
-	Off       []string `json:"off,omitempty"`
-	AddListed []string `json:"addListed,omitempty"`
-	AddCustom []string `json:"addCustom,omitempty"`
+	Off            []string `json:"off,omitempty"`
+	AddListed      []string `json:"addListed,omitempty"`
+	AddCustom      []string `json:"addCustom,omitempty"`
+	AddPreferences []string `json:"addPreferences,omitempty"`
 }
 
 // Bounds on a request, checked before anything is loaded or called.
@@ -89,6 +90,17 @@ func (r Request) Validate() error {
 			return invalid("overrides.addCustom entry is longer than %d characters", profile.MaxEntryChars)
 		}
 	}
+	if len(r.Overrides.AddPreferences) > profile.CapAdditionalPreferences {
+		return invalid("overrides.addPreferences has more than %d entries", profile.CapAdditionalPreferences)
+	}
+	for _, text := range r.Overrides.AddPreferences {
+		if strings.TrimSpace(text) == "" {
+			return invalid("overrides.addPreferences contains an empty entry")
+		}
+		if utf8.RuneCountInString(text) > profile.MaxEntryChars {
+			return invalid("overrides.addPreferences entry is longer than %d characters", profile.MaxEntryChars)
+		}
+	}
 	return nil
 }
 
@@ -103,7 +115,12 @@ func positiveWithin(name string, v *int, hi int) error {
 }
 
 func (r Request) profileOverrides() profile.Overrides {
-	return profile.Overrides{Off: r.Overrides.Off, AddListed: r.Overrides.AddListed, AddCustom: r.Overrides.AddCustom}
+	return profile.Overrides{
+		Off:            r.Overrides.Off,
+		AddListed:      r.Overrides.AddListed,
+		AddCustom:      r.Overrides.AddCustom,
+		AddPreferences: r.Overrides.AddPreferences,
+	}
 }
 
 func (r Request) promptLimits() prompt.Limits {

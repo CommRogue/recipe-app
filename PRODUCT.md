@@ -20,11 +20,11 @@ Flutter phone app for Android and iOS; web is deferred. `CONTEXT.md` is the voca
 
 ## Brand Commitments
 
-Panwise is the working name. Typography leads; emoji Covers are the visual anchor. The developer selected Index (variant A) on 21 September 2026; DESIGN.md records the direction. Issue #16's artifact contains no recipe photography. Whether its wording removes user-supplied photo Covers from v1 is unresolved against the existing domain decisions.
+Panwise is the working name. Typography leads; emoji Covers are the visual anchor and permanent fallback. The developer selected Index (variant A) on 21 September 2026; DESIGN.md records the direction. User-supplied photo Covers for saved Recipes remain in scope for v1 (resolved in issue #28, reconciling #1, #4, #5, and #46), while stock food photography and AI-generated covers remain deferred.
 
 ## Evidence on Hand
 
-Issue #1 contains accepted scope decisions; issue #16 requests a rough artifact, one feedback iteration, then a chosen direction. The Flutter theme and home are explicitly placeholders. Prototype content is synthetic.
+Issue #1 contains accepted scope decisions; issue #16 establishes the Index design direction; issue #28 resolves the generation limit, override, and cover scope gaps. The Flutter theme and home are placeholders. Prototype content is synthetic.
 
 ## Product Principles
 

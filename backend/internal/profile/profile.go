@@ -16,12 +16,13 @@ import (
 
 // Caps from ADR 0005 and docs/firestore-data-model.md.
 const (
-	CapListed            = 40
-	CapCustomConstraints = 20
-	CapLiked             = 30
-	CapDisliked          = 30
-	CapQualities         = 20
-	MaxEntryChars        = 80
+	CapListed                = 40
+	CapCustomConstraints     = 20
+	CapLiked                 = 30
+	CapDisliked              = 30
+	CapQualities             = 20
+	CapAdditionalPreferences = 20
+	MaxEntryChars            = 80
 )
 
 // Profile is users/{uid}/profile/default. A zero Profile is the empty
@@ -45,21 +46,24 @@ type Overrides struct {
 	AddListed []string
 	// AddCustom adds One-off Custom Constraints in the user's words.
 	AddCustom []string
+	// AddPreferences adds one-off soft Preferences in the user's words.
+	AddPreferences []string
 }
 
 // EffectiveSet is the Profile after Overrides, flattened to what the prompt
 // needs: ordered texts, no entry ids.
 type EffectiveSet struct {
-	Listed            []string
-	CustomConstraints []string
-	Liked             []string
-	Disliked          []string
-	Qualities         []string
+	Listed                []string
+	CustomConstraints     []string
+	Liked                 []string
+	Disliked              []string
+	Qualities             []string
+	AdditionalPreferences []string
 }
 
 // IsEmpty reports whether nothing constrains or steers generation.
 func (e EffectiveSet) IsEmpty() bool {
-	return len(e.Listed)+len(e.CustomConstraints)+len(e.Liked)+len(e.Disliked)+len(e.Qualities) == 0
+	return len(e.Listed)+len(e.CustomConstraints)+len(e.Liked)+len(e.Disliked)+len(e.Qualities)+len(e.AdditionalPreferences) == 0
 }
 
 // Normalized returns the Profile with the exact caps applied: an entry over
@@ -102,12 +106,23 @@ func Apply(p Profile, o Overrides) EffectiveSet {
 		custom = custom[:CapCustomConstraints]
 	}
 
+	var prefs []string
+	for _, text := range o.AddPreferences {
+		if utf8.RuneCountInString(text) <= MaxEntryChars && text != "" {
+			prefs = append(prefs, text)
+		}
+	}
+	if len(prefs) > CapAdditionalPreferences {
+		prefs = prefs[:CapAdditionalPreferences]
+	}
+
 	return EffectiveSet{
-		Listed:            listed,
-		CustomConstraints: custom,
-		Liked:             textsInKeyOrder(p.Liked, off),
-		Disliked:          textsInKeyOrder(p.Disliked, off),
-		Qualities:         textsInKeyOrder(p.Qualities, off),
+		Listed:                listed,
+		CustomConstraints:     custom,
+		Liked:                 textsInKeyOrder(p.Liked, off),
+		Disliked:              textsInKeyOrder(p.Disliked, off),
+		Qualities:             textsInKeyOrder(p.Qualities, off),
+		AdditionalPreferences: prefs,
 	}
 }
 

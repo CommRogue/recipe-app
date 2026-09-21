@@ -139,3 +139,24 @@ func TestBuildIsDeterministic(t *testing.T) {
 		t.Fatal("Build must be a pure function of its input")
 	}
 }
+
+func TestBuildRendersAdditionalPreferencesUnderPreferences(t *testing.T) {
+	p, skipped := Build(Input{
+		Ask: "dinner",
+		Effective: profile.EffectiveSet{
+			AdditionalPreferences: []string{"extra crispy", "kid-friendly"},
+		},
+	})
+	if len(skipped) != 0 {
+		t.Fatal(skipped)
+	}
+	if !strings.Contains(p.User, "PREFERENCES.") {
+		t.Fatalf("AdditionalPreferences should trigger the PREFERENCES block:\n%s", p.User)
+	}
+	if !strings.Contains(p.User, `Additional preferences for this recipe, in the user's words: "extra crispy", "kid-friendly".`) {
+		t.Fatalf("Additional preferences missing or misformatted:\n%s", p.User)
+	}
+	if strings.Contains(p.User, "HARD RULES") {
+		t.Fatalf("Additional preferences must not create a HARD RULES block:\n%s", p.User)
+	}
+}

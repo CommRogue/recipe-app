@@ -18,9 +18,9 @@ Depth counts screens pushed above a root destination. Sheets count as one additi
 | Collections | Segment within Recipes, 0 | Open or create a Collection |
 | Collection `/collections/:id` | Recipes → Collection, 1 | Open a Recipe; rename or delete grouping without deleting Recipes |
 | Recipe `/recipes/:id` | Recipes → Recipe, 1; via Collection, 2 | Cook, Rate, organise into Collections; Ingredients and Steps in the same scroll |
-| Cooking Session `/sessions/:id` | Recipe → Cook, 2; via Collection, 3 | Step progress, relevant Ingredient amounts, timer where present; previous/next; exit preserves progress |
-| Generate `/generate` | Root, 0 | Free-text ask, inline Generation Limits, Profile summary, Generate |
-| Overrides | Generate → sheet, 1 | Switch Profile entries off or add One-off Constraints; clearly scoped to this Draft Chain; confirm disabling an allergen |
+| Cooking Session `/sessions/:id` | Recipe → Cook, 2; via Collection, 3 | Step progress, relevant Ingredient amounts, timer where present (foreground chime + wake lock, local background notification on expiry); previous/next; exit preserves progress |
+| Generate `/generate` | Root, 0 | Free-text ask, inline Generation Limits (sliders with discrete steps and no-limit toggles), Profile summary, Generate |
+| Overrides | Generate → sheet, 1 | Switch Profile entries off, add One-off Constraints, or add Additional preferences; clearly scoped to this Draft Chain; confirm disabling an allergen |
 | Recent Draft Chains | Inline list on Generate, 0 | Resume an unsaved Draft; show expiry, retained for seven days |
 | Draft `/draft-chains/:chainId/drafts/:id` | Generate → Draft, 1 | Save, Refine, Report, discard; no checked/safe/matches-Profile claim |
 | Refinement | Draft → sheet, 2 | Instruction and remaining Refinements; successful response replaces displayed Draft, with access to previous Drafts |
@@ -43,7 +43,7 @@ Keep search on the Recipes screen, all three Generation Limits on the request fo
 
 - Sign in → one skippable screen of diet/allergen toggles → chosen root. Before the first Generation Request is sent, show the consent screen described by issue #13. Declining leaves saved Recipes accessible. Exact onboarding choreography remains a follow-up decision.
 - Empty Recipes: a direct Generate action; no fabricated recommendations. Empty Profile remains valid.
-- Generation in progress: preserve the ask and Overrides, show progress without an invented percentage, and prevent duplicate submission. Failure with no delivered Draft charges no Quota; retain the request for retry.
+- Generation in progress: preserve the ask and Overrides, complete-response waiting state without fake progress percentages, and prevent duplicate submission. Failure with no delivered Draft charges no Quota; retain the request for retry. Delivered Drafts that exceed a Generation Limit display an overrun notice rather than failing.
 - Unsaved Draft: make its status and expiry visible. Saving failure keeps the Draft and offers retry. A Refinement failure preserves the previous Draft and does not consume a Refinement.
 - Reached generation Quota: show the actual next reset time and Plan route. Three-Refinement cap: preserve Save and reading, explain that a new Generation Request is needed to continue refining.
 - Saved-Recipe cap: keep the Draft available; offer management of saved Recipes and the Plan route. A Paid Plan lapse must not block reading or cooking existing Recipes.
@@ -54,6 +54,4 @@ Keep search on the Recipes screen, all three Generation Limits on the request fo
 
 1. Resolved: Index (variant A), selected by the developer. No elements from Shelf or Tempo were requested.
 2. Iteration: dedicate the default preview to Index; preserve library position on return; resume the same Recipe's Cooking Session rather than restart it. Search and the three root destinations remain directly accessible.
-3. Issue #16 says no recipe photography in v1, while the existing domain allows user-supplied photo Covers. The artifact will use emoji only; removing the photo capability from v1 requires an explicit scope decision, not an accidental visual-design change.
-
-The scope question about user-supplied photo Covers is separate from the chosen visual direction. The prototype and accepted default use emoji; implementation must not silently remove the existing photo capability decision.
+3. Resolved (issue #28): User-supplied photo Covers remain in scope for saved Recipes, with emoji as the default generated Cover and permanent fallback. Stock food photography and AI-generated covers remain deferred.

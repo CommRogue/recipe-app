@@ -140,6 +140,9 @@ func preferences(e profile.EffectiveSet) []string {
 	if len(e.Qualities) > 0 {
 		out = append(out, "Qualities the user looks for, in their words: "+quotedList(e.Qualities)+".")
 	}
+	if len(e.AdditionalPreferences) > 0 {
+		out = append(out, "Additional preferences for this recipe, in the user's words: "+quotedList(e.AdditionalPreferences)+".")
+	}
 	return out
 }
 
