@@ -1,0 +1,55 @@
+default_platform(:ios)
+
+APP_BUNDLE_ID = ENV.fetch("APP_BUNDLE_ID", "app.panwise")
+IOS_FLAVOR_ARGS = "--flavor=prod --target=lib/main_prod.dart"
+
+platform :ios do
+  desc "Create a Shorebird release and upload it to TestFlight"
+  lane :release_shorebird do
+    setup_ci
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_API_KEY_BASE64"),
+      is_key_content_base64: true
+    )
+
+    match(
+      type: "appstore",
+      app_identifier: APP_BUNDLE_ID,
+      readonly: true,
+      api_key: api_key
+    )
+
+    shorebird_release(platform: "ios", args: IOS_FLAVOR_ARGS)
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: APP_BUNDLE_ID,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Create a Dart-only Shorebird patch"
+  lane :patch_shorebird do
+    setup_ci
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_API_KEY_BASE64"),
+      is_key_content_base64: true
+    )
+
+    match(
+      type: "appstore",
+      app_identifier: APP_BUNDLE_ID,
+      readonly: true,
+      api_key: api_key
+    )
+
+    release_version = ENV.fetch("SHOREBIRD_RELEASE_VERSION", "latest")
+    shorebird_patch(
+      platform: "ios",
+      args: "#{IOS_FLAVOR_ARGS} --release-version=#{release_version}"
+    )
+  end
+end

@@ -1,0 +1,115 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "!v*-hotfix*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    name: Android release
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configure Android signing
+        working-directory: app
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keystore_path="$RUNNER_TEMP/panwise-upload-key.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          {
+            printf 'storePassword=%s\n' "$ANDROID_KEYSTORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS"
+            printf 'storeFile=%s\n' "$keystore_path"
+          } > android/key.properties
+
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Create Shorebird release
+        id: shorebird-release
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: "3.47.4"
+          platform: android
+          working-directory: app
+          args: >-
+            --flavor=prod
+            --target=lib/main_prod.dart
+
+      - name: Verify Android App Bundle
+        working-directory: app
+        run: test -f build/app/outputs/bundle/prodRelease/app-prod-release.aab
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: app/android
+
+      - name: Write Play Console credentials
+        env:
+          PLAY_CONSOLE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_CONSOLE_SERVICE_ACCOUNT_JSON }}
+        run: printf '%s' "$PLAY_CONSOLE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-console-service-account.json"
+
+      - name: Upload to Play internal testing
+        working-directory: app/android
+        env:
+          AAB_PATH: ${{ github.workspace }}/app/build/app/outputs/bundle/prodRelease/app-prod-release.aab
+          PLAY_JSON_KEY_PATH: ${{ runner.temp }}/play-console-service-account.json
+        run: bundle exec fastlane android upload_internal
+
+  ios:
+    name: iOS release
+    runs-on: macos-latest
+    environment: prod
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+      APP_BUNDLE_ID: app.panwise
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      MATCH_GIT_URL: ${{ vars.MATCH_GIT_URL }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: app/ios
+
+      - name: Release to Shorebird and TestFlight
+        working-directory: app/ios
+        run: bundle exec fastlane ios release_shorebird

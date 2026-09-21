@@ -1,0 +1,18 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload the Shorebird release to Play internal testing"
+  lane :upload_internal do
+    upload_to_play_store(
+      json_key: ENV.fetch("PLAY_JSON_KEY_PATH"),
+      package_name: ENV.fetch("APP_PACKAGE_NAME", "app.panwise"),
+      aab: ENV.fetch("AAB_PATH"),
+      track: "internal",
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+end

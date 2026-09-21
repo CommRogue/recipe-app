@@ -58,6 +58,14 @@ flutter test test/features/recipes # one directory
 
 Riverpod providers use `riverpod_annotation`; models use `freezed` and `json_serializable`. Generated files are committed so a fresh clone builds without running the generator.
 
+## CI release pipeline
+
+Pull requests that change `app/` run formatting, `flutter analyze` and `flutter test` in `.github/workflows/flutter.yml`. A `v*` tag runs the `prod` flavor through Shorebird, then uploads the Android App Bundle to Play internal testing and the iOS IPA to TestFlight in `.github/workflows/release.yml`. A `v*-hotfix*` tag, or a manual run of `.github/workflows/patch.yml`, creates Dart-only Shorebird patches for the selected release.
+
+The release and patch workflows use the `prod` GitHub environment. Before running them, configure these environment secrets: `SHOREBIRD_TOKEN`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEY_ALIAS`, `PLAY_CONSOLE_SERVICE_ACCOUNT_JSON`, `MATCH_PASSWORD`, `MATCH_GIT_BASIC_AUTHORIZATION`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID` and `APP_STORE_CONNECT_API_KEY_BASE64`. Add `MATCH_GIT_URL` and `APPLE_TEAM_ID` as environment variables. The first Play upload and the first Match certificate/profile sync still require the one-time store setup described in issue #11.
+
+The workflows intentionally release `prod`; issue #24 must supply its Firebase configuration before a store-installable build can be verified.
+
 ## Security rules
 
 Rules, indexes and their emulator tests live in `../firebase/`:
