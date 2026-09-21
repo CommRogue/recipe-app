@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cooking Session — throwaway prototype</title>
+  <style>
+    :root { color-scheme: light; --ink:#18241f; --muted:#607066; --paper:#f6f5ef; --card:#fff; --line:#d9dfd7; --accent:#19744a; --accent-soft:#e4f3ea; --warn:#9b5612; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1080px; margin:0 auto; padding:42px 24px 64px; } h1 { margin:0; font-size:2rem; } h2 { margin:28px 0 12px; font-size:1.15rem; } h3 { margin:0 0 8px; font-size:1rem; } p { margin:8px 0; } .eyebrow { color:var(--accent); font-weight:750; letter-spacing:.06em; text-transform:uppercase; font-size:.74rem; }
+    .intro, .panel, .scenario { background:var(--card); border:1px solid var(--line); border-radius:15px; padding:20px; box-shadow:0 2px 8px #1724180b; } .intro { margin-top:20px; } .grid { display:grid; grid-template-columns:1.1fr .9fr; gap:18px; } @media (max-width:760px) { .grid { grid-template-columns:1fr; } main { padding:24px 15px; } }
+    .state { display:grid; gap:10px; } .row { display:flex; gap:12px; align-items:baseline; padding-bottom:9px; border-bottom:1px solid #edf0eb; } .row:last-child { border:0; padding:0; } .key { flex:0 0 138px; color:var(--muted); font-size:.88rem; } .value { font-weight:600; } .entry { border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px; } .entry.current { border-color:var(--accent); background:var(--accent-soft); } .chips { display:flex; flex-wrap:wrap; gap:7px; } .chip { background:#edf1ec; border-radius:999px; padding:3px 8px; font-size:.82rem; } .chip.run { background:#fff0dc; color:#7b4006; } .notice { min-height:24px; padding:9px 11px; border-radius:9px; background:#f1f3ef; color:#3e4a42; font-size:.9rem; }
+    .controls { display:flex; flex-wrap:wrap; gap:9px; } button { appearance:none; cursor:pointer; color:#143322; background:#fff; border:1px solid #b9c9bd; border-radius:9px; padding:9px 11px; font:inherit; } button:hover { border-color:var(--accent); } button.primary { background:var(--accent); border-color:var(--accent); color:#fff; } button.danger { color:#8d3c0c; } button:disabled { cursor:not-allowed; opacity:.42; } .tabbar { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; } .tab.active { background:var(--ink); color:white; border-color:var(--ink); }
+    .scenario[hidden] { display:none; } .steps { display:grid; gap:8px; margin-top:14px; } .walk-step { text-align:left; display:flex; gap:10px; align-items:center; } .walk-step .number { background:var(--accent-soft); color:var(--accent); border-radius:50%; height:24px; width:24px; display:grid; place-items:center; font-weight:700; font-size:.82rem; } .walk-step.done { background:#eef5f0; border-color:#a8ccb2; } .walk-step.next { border-color:var(--accent); box-shadow:0 0 0 2px #19744a22; } .model { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap; font-size:.78rem; background:#17241d; color:#dff0e4; border-radius:10px; padding:13px; margin:0; overflow:auto; } .fine { color:var(--muted); font-size:.86rem; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Throwaway prototype · issue #20</div>
+  <h1>Cooking Session</h1>
+  <div class="intro">
+    <strong>Question:</strong> can one small, persisted session shape support step-by-step cooking, one timer per step, leaving and resuming the app, and step-specific ingredients—without making v1 single-recipe-only?<br>
+    <span class="fine">This is a self-contained model demo. Open this file directly in a browser; nothing is saved or sent anywhere.</span>
+  </div>
+
+  <h2>Current session state</h2>
+  <div class="grid">
+    <section class="panel"><div id="state" class="state"></div></section>
+    <section class="panel">
+      <h3>What just happened</h3><div id="notice" class="notice" aria-live="polite"></div>
+      <h3 style="margin-top:18px">Free play</h3>
+      <div class="controls" id="controls">
+        <button class="primary" data-action="previous">Previous step</button>
+        <button class="primary" data-action="next">Next step</button>
+        <button data-action="timer">Start / pause this step’s timer</button>
+        <button data-action="tick">Advance clock 30 seconds</button>
+        <button data-action="leave">Leave app</button>
+        <button data-action="resume">Resume app</button>
+        <button data-action="wake">Toggle keep screen awake</button>
+        <button data-action="complete">Finish cooking</button>
+        <button class="danger" data-action="reset">Reset session</button>
+      </div>
+    </section>
+  </div>
+
+  <h2>Guided walkthroughs</h2>
+  <div class="tabbar" id="tabs"></div>
+  <section id="scenario" class="scenario"></section>
+
+  <h2>Persisted document preview</h2>
+  <p class="fine">The document stores durable facts only. The app derives the countdown from its wall clock when it renders, so a timer does not depend on the app staying open.</p>
+  <pre id="model" class="model"></pre>
+</main>
+
+<script>
+/*
+  Three scenario prototype of Cooking Session state, driven by its reducer.
+  Persisted shape: entries + currentEntry + timer snapshots + timestamps.
+  In v1 there is one entry; every reducer action is keyed through currentEntry.
+*/
+const recipe = {
+  id: 'lemon-orzo', revision: 1, title: 'Lemon Orzo with Greens',
+  ingredients: {
+    i1: '1 tbsp olive oil', i2: '2 cloves garlic, sliced', i3: '180 g orzo',
+    i4: '500 ml vegetable stock', i5: '120 g spinach', i6: '½ lemon'
+  },
+  steps: [
+    { text: 'Warm the olive oil and soften the garlic.', ingredients: ['i1','i2'] },
+    { text: 'Stir in the orzo and stock; bring to a gentle simmer.', ingredients: ['i3','i4'] },
+    { text: 'Simmer until tender, stirring now and then.', ingredients: [], timerSeconds: 600 },
+    { text: 'Fold through spinach and finish with lemon.', ingredients: ['i5','i6'] }
+  ]
+};
+
+const initialState = () => ({
+  id: 'session-demo',
+  entries: [{ entryId: 'entry-1', recipeId: recipe.id, recipeRevision: recipe.revision, currentStep: 0 }],
+  currentEntry: 0,
+  timers: {},
+  startedAt: 0,
+  updatedAt: 0,
+  completedAt: null,
+  appIsActive: true,
+  keepScreenAwake: true,
+  now: 0
+});
+
+// Pure state module. `now` makes the demo deterministic; production passes a clock value.
+const currentEntry = state => state.entries[state.currentEntry];
+const timerKey = (entryId, step) => `${entryId}:${step}`;
+const elapsed = (timer, now) => timer.status === 'running'
+  ? Math.min(timer.durationSeconds, timer.elapsedSeconds + now - timer.runningSince)
+  : timer.elapsedSeconds;
+const isDone = (timer, now) => elapsed(timer, now) >= timer.durationSeconds;
+const copy = state => structuredClone(state);
+function reduce(state, action) {
+  let next = copy(state);
+  const entry = currentEntry(next);
+  const step = recipe.steps[entry.currentStep];
+  const stamp = () => { next.updatedAt = next.now; return next; };
+  if (action.type === 'RESET') return initialState();
+  if (action.type === 'TICK') { next.now += action.seconds; return stamp(); }
+  if (action.type === 'LEAVE') { next.appIsActive = false; return stamp(); }
+  if (action.type === 'RESUME') { next.appIsActive = true; return stamp(); }
+  if (action.type === 'TOGGLE_WAKE') { next.keepScreenAwake = !next.keepScreenAwake; return stamp(); }
+  if (action.type === 'PREVIOUS') { entry.currentStep = Math.max(0, entry.currentStep - 1); return stamp(); }
+  if (action.type === 'NEXT') { entry.currentStep = Math.min(recipe.steps.length - 1, entry.currentStep + 1); return stamp(); }
+  if (action.type === 'TOGGLE_TIMER' && step.timerSeconds) {
+    const key = timerKey(entry.entryId, entry.currentStep);
+    const old = next.timers[key];
+    if (!old) next.timers[key] = { entryId:entry.entryId, step:entry.currentStep, durationSeconds:step.timerSeconds, elapsedSeconds:0, status:'running', runningSince:next.now };
+    else if (old.status === 'running') {
+      old.elapsedSeconds = elapsed(old, next.now); old.runningSince = null;
+      old.status = isDone(old, next.now) ? 'done' : 'paused';
+    } else if (old.status !== 'done') { old.status = 'running'; old.runningSince = next.now; }
+    return stamp();
+  }
+  if (action.type === 'COMPLETE') { next.completedAt = next.now; return stamp(); }
+  return state;
+}
+
+const scenarios = [
+  { key:'happy', title:'Happy path', description:'Move through the recipe. Notice that ingredients are attached to the current step, not copied into the session.', steps:[
+    ['NEXT','Move to the stock-and-orzo step'], ['NEXT','Move to the simmer step'], ['TOGGLE_TIMER','Start its 10-minute timer'], ['TICK','Advance 30 seconds'], ['NEXT','Read the finishing step while the timer keeps running']
+  ]},
+  { key:'resume', title:'Leave & resume', description:'A running timer records its start time and elapsed amount. It continues against wall time while the app is away; resuming only redraws it.', steps:[
+    ['NEXT','Move to step 2'], ['NEXT','Move to the simmer step'], ['TOGGLE_TIMER','Start the timer'], ['LEAVE','Leave the app'], ['TICK','Simulate 30 seconds outside the app'], ['RESUME','Return to cooking']
+  ]},
+  { key:'finish', title:'Finish & history', description:'Finishing stamps the session. In the real write, the same batch increments the Recipe’s cook count and last-cooked date.', steps:[
+    ['NEXT','Move to step 2'], ['NEXT','Move to the simmer step'], ['TOGGLE_TIMER','Start the timer'], ['TICK','Advance 30 seconds'], ['COMPLETE','Finish cooking']
+  ]}
+];
+let state = initialState(), activeScenario = 0, walkPosition = 0, notice = 'A new Cooking Session has started.';
+const actionLabels = { PREVIOUS:'Moved to the previous step.', NEXT:'Moved to the next step.', TOGGLE_TIMER:'Changed this step’s timer.', TICK:'Advanced the wall clock by 30 seconds.', LEAVE:'The app is now in the background.', RESUME:'The app is active again; timers reconcile from wall time.', TOGGLE_WAKE:'Changed the local keep-screen-awake preference.', COMPLETE:'Marked the Cooking Session complete.', RESET:'Started over with a fresh in-memory session.' };
+function dispatch(type) { state = reduce(state, type === 'TICK' ? {type,seconds:30} : {type}); notice = actionLabels[type]; render(); }
+function ingredientText(step) { return step.ingredients.length ? step.ingredients.map(id => recipe.ingredients[id]).join(' · ') : 'No new ingredients at this step'; }
+function formatSeconds(s) { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function persistedPreview() {
+  const { appIsActive, keepScreenAwake, now, ...document } = state;
+  document.timers = Object.fromEntries(Object.entries(document.timers).map(([key, timer]) => [key, {...timer, elapsedSeconds: elapsed(timer, state.now), runningSince: timer.status === 'running' ? state.now : null}]));
+  return document;
+}
+function render() {
+  const entry = currentEntry(state), step = recipe.steps[entry.currentStep];
+  const timer = state.timers[timerKey(entry.entryId,entry.currentStep)];
+  const timers = Object.values(state.timers);
+  document.getElementById('state').innerHTML = `
+    <div class="row"><span class="key">Recipe entry</span><span class="value">${entry.entryId} · ${recipe.title} (revision ${entry.recipeRevision})</span></div>
+    <div class="row"><span class="key">Current entry</span><span class="value">${state.currentEntry + 1} of ${state.entries.length}</span></div>
+    <div class="row"><span class="key">Current step</span><span class="value">${entry.currentStep + 1} of ${recipe.steps.length}: ${step.text}</span></div>
+    <div class="row"><span class="key">For this step</span><span class="value">${ingredientText(step)}</span></div>
+    <div class="row"><span class="key">Timer here</span><span class="value">${timer ? `${formatSeconds(elapsed(timer,state.now))} / ${formatSeconds(timer.durationSeconds)} · ${timer.status}` : step.timerSeconds ? 'Not started (10:00)' : 'This step has no timer'}</span></div>
+    <div class="row"><span class="key">All timers</span><span class="chips">${timers.length ? timers.map(t=>`<span class="chip ${t.status==='running'?'run':''}">step ${t.step+1}: ${formatSeconds(elapsed(t,state.now))} ${t.status}</span>`).join('') : '<span class="fine">None</span>'}</span></div>
+    <div class="row"><span class="key">App / display</span><span class="value">${state.appIsActive ? 'Active' : 'In background'} · screen awake ${state.keepScreenAwake ? 'requested' : 'not requested'}</span></div>
+    <div class="row"><span class="key">Session status</span><span class="value">${state.completedAt === null ? 'In progress' : `Completed at ${formatSeconds(state.completedAt)}`}</span></div>`;
+  document.getElementById('notice').textContent = notice;
+  document.getElementById('model').textContent = JSON.stringify(persistedPreview(), null, 2);
+  document.querySelector('[data-action="timer"]').disabled = !step.timerSeconds || state.completedAt !== null;
+  document.querySelector('[data-action="complete"]').disabled = state.completedAt !== null;
+  renderScenarios();
+}
+function renderScenarios() {
+  document.getElementById('tabs').innerHTML = scenarios.map((s,i)=>`<button class="tab ${i===activeScenario?'active':''}" data-tab="${i}">${s.title}</button>`).join('');
+  const s = scenarios[activeScenario];
+  document.getElementById('scenario').innerHTML = `<h3>${s.title}</h3><p>${s.description}</p><div class="steps">${s.steps.map(([type,label],i)=>`<button class="walk-step ${i<walkPosition?'done':''} ${i===walkPosition?'next':''}" data-walk="${i}" ${i>walkPosition?'disabled':''}><span class="number">${i+1}</span><span>${label}</span></button>`).join('')}</div><p class="fine">Choose a walkthrough tab to reset it. Each step is a real state transition.</p>`;
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{activeScenario=Number(b.dataset.tab);walkPosition=0;state=initialState();notice=`Started the ${scenarios[activeScenario].title} walkthrough.`;render();});
+  document.querySelectorAll('[data-walk]').forEach(b=>b.onclick=()=>{const [type,label]=scenarios[activeScenario].steps[walkPosition]; dispatch(type); walkPosition++; notice=label; render();});
+}
+document.getElementById('controls').onclick = event => { const type = event.target.dataset.action; if (!type) return; dispatch(({previous:'PREVIOUS',next:'NEXT',timer:'TOGGLE_TIMER',tick:'TICK',leave:'LEAVE',resume:'RESUME',wake:'TOGGLE_WAKE',complete:'COMPLETE',reset:'RESET'})[type]); };
+render();
+</script>
+</body>
+</html>
