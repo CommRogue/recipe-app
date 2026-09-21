@@ -1,5 +1,5 @@
-// prod flavor. The prod Firebase project does not exist yet (#24); fill the
-// Google client ids from its GoogleService-Info.plist when it does.
+// prod flavor: the recipe-app-prod-508817 Firebase project (#24).
+// Values come from ios/Runner/Firebase/Prod/GoogleService-Info.plist.
 PRODUCT_BUNDLE_IDENTIFIER = app.panwise
 APP_DISPLAY_NAME = Panwise
 DEVELOPMENT_TEAM = $(APPLE_TEAM_ID)

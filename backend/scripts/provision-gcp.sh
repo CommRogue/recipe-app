@@ -41,7 +41,15 @@ if ! gcloud iam workload-identity-pools describe "$POOL" --location=global --pro
     --display-name="GitHub Actions" \
     --description="Identities of GitHub Actions runs in this owner's repositories"
 fi
-POOL_NAME=$(gcloud iam workload-identity-pools describe "$POOL" --location=global --project "$PROJECT" --format='value(name)')
+# A freshly created pool can take a few seconds to become readable.
+POOL_NAME=""
+for _ in 1 2 3 4 5 6; do
+  POOL_NAME=$(gcloud iam workload-identity-pools describe "$POOL" --location=global \
+    --project "$PROJECT" --format='value(name)' 2>/dev/null || true)
+  [[ -n "$POOL_NAME" ]] && break
+  sleep 5
+done
+[[ -n "$POOL_NAME" ]] || { echo "pool $POOL not readable after creation" >&2; exit 1; }
 
 if ! gcloud iam workload-identity-pools providers describe "$PROVIDER" --location=global \
      --workload-identity-pool="$POOL" --project "$PROJECT" >/dev/null 2>&1; then
