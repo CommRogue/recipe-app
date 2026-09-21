@@ -1,0 +1,1 @@
+app_identifier(ENV.fetch("APP_BUNDLE_ID", "app.panwise"))

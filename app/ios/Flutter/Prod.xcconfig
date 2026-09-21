@@ -2,6 +2,7 @@
 // Google client ids from its GoogleService-Info.plist when it does.
 PRODUCT_BUNDLE_IDENTIFIER = app.panwise
 APP_DISPLAY_NAME = Panwise
+DEVELOPMENT_TEAM = $(APPLE_TEAM_ID)
 GOOGLE_CLIENT_ID =
 GOOGLE_REVERSED_CLIENT_ID =
 GOOGLE_SERVER_CLIENT_ID =
