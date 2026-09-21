@@ -11,6 +11,16 @@ on:
       - "backend/**"
       - ".github/workflows/backend.yml"
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+          - both
 
 permissions:
   contents: read
@@ -42,10 +52,75 @@ jobs:
   deploy-dev:
     name: deploy to Cloud Run (dev)
     needs: test
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.environment == 'dev' || inputs.environment == 'both'))
     runs-on: ubuntu-latest
     environment:
       name: dev
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - id: deploy
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: recipe-api
+          region: ${{ vars.GCP_REGION }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          source: backend
+          # The service is publicly invokable and verifies Firebase ID tokens
+          # itself; Cloud Run IAM would reject them (#14 audit).
+          flags: >-
+            --allow-unauthenticated
+            --service-account=${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+            --min-instances=0
+            --max-instances=3
+            --cpu=1
+            --memory=512Mi
+            --timeout=120
+            --concurrency=20
+          env_vars: |
+            GOOGLE_CLOUD_PROJECT=${{ vars.GCP_PROJECT_ID }}
+            VERTEX_LOCATION=global
+            GEMINI_MODEL=gemini-3.8-flash
+          labels: |
+            app=panwise
+            component=recipe-api
+
+      - name: smoke test
+        working-directory: .
+        run: |
+          # A brand-new service's URL can lag its Ready condition by a few seconds.
+          for i in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error "${{ steps.deploy.outputs.url }}/health"; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+
+  deploy-prod:
+    name: deploy to Cloud Run (prod)
+    needs: [test, deploy-dev]
+    if: |
+      !failure() && !cancelled() &&
+      needs.test.result == 'success' &&
+      (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.environment == 'prod' || inputs.environment == 'both'))
+      )
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
       url: ${{ steps.deploy.outputs.url }}
     permissions:
       contents: read

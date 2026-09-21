@@ -4,10 +4,10 @@ The Flutter client (#17). Terms are from `../CONTEXT.md`; the Firestore layout i
 
 ## Flavors
 
-| Flavor | Bundle id         | Firebase project           | Entry point          |
-| ------ | ----------------- | -------------------------- | -------------------- |
-| dev    | `app.panwise.dev` | `recipe-app-508817`        | `lib/main_dev.dart`  |
-| prod   | `app.panwise`     | none yet, created in #24   | `lib/main_prod.dart` |
+| Flavor | Bundle id         | Firebase project         | Entry point          |
+| ------ | ----------------- | ------------------------ | -------------------- |
+| dev    | `app.panwise.dev` | `recipe-app-508817`      | `lib/main_dev.dart`  |
+| prod   | `app.panwise`     | `recipe-app-prod-508817` | `lib/main_prod.dart` |
 
 Every build needs a flavor, on both platforms:
 
@@ -16,7 +16,7 @@ flutter run --flavor dev -t lib/main_dev.dart
 flutter build apk --debug --flavor dev -t lib/main_dev.dart
 ```
 
-The prod flavor builds, then throws on start until #24 fills in `lib/firebase_options_prod.dart` and `ios/Flutter/Prod.xcconfig`.
+The prod flavor is configured with `lib/firebase_options_prod.dart` and `ios/Flutter/Prod.xcconfig` (#24).
 
 Android flavors are Gradle product flavors in `android/app/build.gradle.kts`. iOS flavors are the `dev` and `prod` schemes with `Debug-dev`, `Release-dev`, `Profile-dev` and the `-prod` build configurations, each reading `ios/Flutter/<Config>-<flavor>.xcconfig`, which includes `Dev.xcconfig` or `Prod.xcconfig` for the bundle id, display name and Google client ids. The iOS side was written without Xcode and is unverified until a macOS runner builds it (#23).
 

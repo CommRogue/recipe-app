@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "test:emulator": "firebase emulators:exec --only firestore --project recipe-app-508817 'npm test'",
-    "deploy:dev": "firebase deploy --only firestore --project recipe-app-508817"
+    "deploy:dev": "firebase deploy --only firestore --project recipe-app-508817",
+    "deploy:prod": "firebase deploy --only firestore --project recipe-app-prod-508817"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

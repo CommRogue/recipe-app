@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "889209061329",
+    "project_id": "recipe-app-prod-508817",
+    "storage_bucket": "recipe-app-prod-508817.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889209061329:android:713a3f33fda2f8b75d2af0",
+        "android_client_info": {
+          "package_name": "app.panwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1u4WV7H93CCokYlXDEyVqTxWhWh0j_Bg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
